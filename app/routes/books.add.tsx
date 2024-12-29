@@ -50,6 +50,7 @@ export default function PublishBookPage() {
       Object.entries(formData).forEach(([key, value]) => {
         formDataToSend.append(key, value as string | Blob);
       });
+      console.log(formDataToSend);
 
       const response = await fetch("http://localhost/api/books", {
         method: "POST",

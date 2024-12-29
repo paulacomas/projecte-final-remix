@@ -71,26 +71,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     return redirect("/login");
   }
 
-  if (actionType === "update") {
-    const bookId = params.id;
-    const bookData = {
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      opinion: formData.get("opinion") as string,
-      review: Number(formData.get("review")),
-      gender: formData.get("gender") as string,
-      author: formData.get("author") as string,
-      image_book: formData.get("image_book") as File | null,
-    };
-
-    try {
-      await updateBook(bookId, bookData, token);
-      return redirect(`/books/${bookId}`);
-    } catch (error) {
-      return json({ error: "Error updating the book" }, { status: 500 });
-    }
-  }
-
   if (actionType === "delete") {
     try {
       await deleteBook(params.id, token);
@@ -140,6 +120,32 @@ export default function BookDetailPage() {
 
     fetchData();
   }, [id, navigate]);
+
+  const handleSaveChanges = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const token = localStorage.getItem("token");
+
+    if (!book || !token) return;
+
+    try {
+      const bookData = {
+        title: formData.get("title") as string,
+        description: formData.get("description") as string,
+        opinion: formData.get("opinion") as string,
+        review: Number(formData.get("review")),
+        gender: formData.get("gender") as string,
+        author: formData.get("author") as string,
+      };
+
+      const updatedBook = await updateBook(book.id, bookData, token);
+      console.log(updatedBook.data);
+      setBook(updatedBook.data);
+      setIsModalOpen(false);
+    } catch (error) {
+      setError("Error updating the book");
+    }
+  };
 
   if (error) {
     return <div>{error}</div>;
@@ -201,12 +207,7 @@ export default function BookDetailPage() {
         {isModalOpen && (
           <Modal onClose={() => setIsModalOpen(false)}>
             <h2 className="text-xl font-semibold mb-4">Edit Book</h2>
-            <Form
-              method="POST"
-              action={`/books/${book.id}`}
-              encType="multipart/form-data"
-              onSubmit={() => setIsModalOpen(false)}
-            >
+            <Form method="POST" onSubmit={handleSaveChanges}>
               <input type="hidden" name="action" value="update" />
 
               {/* Title */}
@@ -307,35 +308,6 @@ export default function BookDetailPage() {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
-              {/* Subir imagen del libro */}
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1"
-                  htmlFor="image_book"
-                >
-                  Upload Book Image (optional)
-                </label>
-                <input
-                  id="image_book"
-                  name="image_book"
-                  type="file"
-                  accept="image/jpeg, image/png, image/gif, image/svg"
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Mostrar imagen actual si existe */}
-              {book.image_book && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600">Current Image:</p>
-                  <img
-                    src={book.image_book}
-                    alt="Current Book"
-                    className="w-48 h-48 object-cover rounded mt-2"
-                  />
-                </div>
-              )}
 
               <div className="flex justify-end">
                 <button

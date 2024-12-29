@@ -66,7 +66,6 @@ export const updateBook = async (
     review: number;
     gender: string;
     author: string;
-    image_book: File;
   },
   token: string
 ) => {
