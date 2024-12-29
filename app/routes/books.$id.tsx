@@ -139,7 +139,7 @@ export default function BookDetailPage() {
       };
 
       const updatedBook = await updateBook(book.id, bookData, token);
-      console.log(updatedBook.data);
+      console.log(updatedBook);
       setBook(updatedBook.data);
       setIsModalOpen(false);
     } catch (error) {
