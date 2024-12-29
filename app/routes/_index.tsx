@@ -1,17 +1,14 @@
 import { useLoaderData } from "@remix-run/react";
-import Layout from "../components/Layout";
-import BooksGrid from "../components/BookGrid";
+import BooksList from "../components/books"; // Asegúrate de importar correctamente el componente BooksList
 
 export async function loader() {
   try {
     const response = await fetch("http://localhost/api/books", {
       method: "GET",
     });
-
     if (!response.ok) {
       throw new Error(`Failed to fetch books: ${response.statusText}`);
     }
-
     const data = await response.json();
     return data.data;
   } catch (error) {
@@ -21,12 +18,7 @@ export async function loader() {
 }
 
 export default function Index() {
-  const books = useLoaderData();
+  const books = useLoaderData(); // Los libros cargados por el loader
 
-  return (
-    <Layout>
-      <h1 className="text-2xl font-bold mb-6">Books List</h1>
-      <BooksGrid books={books} />
-    </Layout>
-  );
+  return <BooksList books={books} />; // Pasa los datos a BooksList
 }

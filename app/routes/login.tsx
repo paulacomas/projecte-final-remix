@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { Form } from "@remix-run/react";
+import { useLocation } from "@remix-run/react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+  const message = new URLSearchParams(location.search).get("message");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,7 @@ export default function Login() {
       <main className="flex flex-col items-center justify-center flex-1 py-12">
         <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-8 space-y-6">
           <h2 className="text-2xl font-bold mb-4">Login</h2>
+          {message && <p className="text-red-500 mb-4">{message}</p>}
           {error && <p className="text-red-500">{error}</p>}
           <Form onSubmit={handleSubmit} className="space-y-4">
             <div>
