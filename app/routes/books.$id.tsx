@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "@remix-run/react";
+import { useParams, useNavigate, redirect, json, Form } from "@remix-run/react";
 import Layout from "../components/Layout";
 import {
   fetchBookDetails,
   fetchCurrentUser,
   deleteBook,
   updateBook,
-} from "../data/data"; // Importar la función updateBook
-import Modal from "../components/Modal"; // Importar el Modal
+} from "../data/data";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { ActionFunction, LoaderFunction } from "@remix-run/node";
+import Modal from "../components/Modal";
 
+// Tipos para usuarios, comentarios, y detalles del libro
 interface User {
   id: string;
   name: string;
@@ -41,23 +44,72 @@ interface BookDetails {
   user_id: string;
 }
 
-export let action: ActionFunction = async ({ request, params }) => {
-  const formData = new FormData(await request.formData());
-  const bookId = params.id;
-  const token = "YOUR_TOKEN"; // Similar al loader, obtener el token de manera correcta
+// Loader para cargar detalles del libro
+export const loader: LoaderFunction = async ({ request, params }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const token = await getAuthTokenFromCookie(cookieHeader);
 
-  const updatedBook = await updateBook(bookId, formData, token);
+  if (!token) {
+    return redirect("/login");
+  }
 
-  return redirect(`/books/${bookId}`); // Redirige al detalle del libro después de la actualización
+  try {
+    const book = await fetchBookDetails(params.id, token);
+    return json(book);
+  } catch (error) {
+    return json({ error: "Error fetching book details" }, { status: 500 });
+  }
+};
+
+// Action para manejar actualizaciones y eliminación de libros
+export const action: ActionFunction = async ({ request, params }) => {
+  const formData = await request.formData();
+  const actionType = formData.get("action");
+  const token = await getAuthTokenFromCookie(request.headers.get("Cookie"));
+
+  if (!token) {
+    return redirect("/login");
+  }
+
+  if (actionType === "update") {
+    const bookId = params.id;
+    const bookData = {
+      title: formData.get("title") as string,
+      description: formData.get("description") as string,
+      opinion: formData.get("opinion") as string,
+      review: Number(formData.get("review")),
+      gender: formData.get("gender") as string,
+      author: formData.get("author") as string,
+      image_book: formData.get("image_book") as File | null,
+    };
+
+    try {
+      await updateBook(bookId, bookData, token);
+      return redirect(`/books/${bookId}`);
+    } catch (error) {
+      return json({ error: "Error updating the book" }, { status: 500 });
+    }
+  }
+
+  if (actionType === "delete") {
+    try {
+      await deleteBook(params.id, token);
+      return redirect("/");
+    } catch (error) {
+      return json({ error: "Error deleting the book" }, { status: 500 });
+    }
+  }
+
+  return null;
 };
 
 export default function BookDetailPage() {
-  const { id } = useParams(); // Obtener el bookId desde los parámetros de la URL
-  const navigate = useNavigate(); // Hook para redirigir al usuario
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [book, setBook] = useState<BookDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null); // Estado para el usuario logueado
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para abrir o cerrar el modal
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,10 +127,10 @@ export default function BookDetailPage() {
       }
 
       try {
-        const bookData = await fetchBookDetails(id, token); // Usamos la función para obtener los detalles del libro
+        const bookData = await fetchBookDetails(id, token);
         setBook(bookData);
 
-        const userData = await fetchCurrentUser(token); // Usamos la función para obtener los datos del usuario
+        const userData = await fetchCurrentUser(token);
         setCurrentUser(userData);
       } catch (error) {
         setError("Error fetching book details or user data");
@@ -88,43 +140,6 @@ export default function BookDetailPage() {
 
     fetchData();
   }, [id, navigate]);
-
-  const handleDelete = async () => {
-    if (!book || !currentUser) return;
-
-    const token = localStorage.getItem("token");
-
-    try {
-      await deleteBook(book.id, token); // Usamos la función para eliminar el libro
-      navigate("/");
-    } catch (error) {
-      setError("Error deleting the book");
-    }
-  };
-
-  const handleEdit = () => {
-    setIsModalOpen(true); // Abrir el modal
-  };
-
-  const handleSaveChanges = async (formData: FormData) => {
-    const token = localStorage.getItem("token");
-
-    if (!book || !token) return;
-
-    try {
-      // Llamar a la función updateBook desde data.ts
-      const updatedBook = await updateBook(book.id, formData, token);
-
-      // Actualizar el estado con el libro actualizado
-      setBook({
-        ...updatedBook, // Usamos el libro actualizado que recibimos del servidor
-      });
-
-      setIsModalOpen(false); // Cerrar el modal
-    } catch (error) {
-      setError("Error updating the book");
-    }
-  };
 
   if (error) {
     return <div>{error}</div>;
@@ -166,31 +181,182 @@ export default function BookDetailPage() {
         {isOwner && (
           <div className="flex space-x-4 mb-8">
             <button
-              onClick={handleEdit}
+              onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               Edit Book
             </button>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-            >
-              Delete Book
-            </button>
+            <Form method="POST" action={`/books/${book.id}`}>
+              <input type="hidden" name="action" value="delete" />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Delete Book
+              </button>
+            </Form>
           </div>
         )}
 
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleSaveChanges}
-          bookTitle={book.title}
-          bookAuthor={book.author}
-          bookDescription={book.description}
-          bookGender={book.gender}
-        />
+        {isModalOpen && (
+          <Modal onClose={() => setIsModalOpen(false)}>
+            <h2 className="text-xl font-semibold mb-4">Edit Book</h2>
+            <Form
+              method="POST"
+              action={`/books/${book.id}`}
+              encType="multipart/form-data"
+              onSubmit={() => setIsModalOpen(false)}
+            >
+              <input type="hidden" name="action" value="update" />
 
-        {book.reviews.length > 0 && (
+              {/* Title */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1"
+                  htmlFor="title"
+                >
+                  Title
+                </label>
+                <input
+                  id="title"
+                  name="title"
+                  defaultValue={book.title}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Author */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1"
+                  htmlFor="author"
+                >
+                  Author
+                </label>
+                <input
+                  id="author"
+                  name="author"
+                  defaultValue={book.author}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1"
+                  htmlFor="description"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  defaultValue={book.description}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Opinion */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1"
+                  htmlFor="opinion"
+                >
+                  Opinion (optional)
+                </label>
+                <textarea
+                  id="opinion"
+                  name="opinion"
+                  defaultValue={book.opinion}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Review */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1"
+                  htmlFor="review"
+                >
+                  Rating (1 to 5)
+                </label>
+                <input
+                  id="review"
+                  name="review"
+                  type="number"
+                  min="1"
+                  max="5"
+                  defaultValue={book.review}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Gender */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1"
+                  htmlFor="gender"
+                >
+                  Genre
+                </label>
+                <input
+                  id="gender"
+                  name="gender"
+                  defaultValue={book.gender}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Subir imagen del libro */}
+              <div className="mb-4">
+                <label
+                  className="block text-sm font-medium mb-1"
+                  htmlFor="image_book"
+                >
+                  Upload Book Image (optional)
+                </label>
+                <input
+                  id="image_book"
+                  name="image_book"
+                  type="file"
+                  accept="image/jpeg, image/png, image/gif, image/svg"
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Mostrar imagen actual si existe */}
+              {book.image_book && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600">Current Image:</p>
+                  <img
+                    src={book.image_book}
+                    alt="Current Book"
+                    className="w-48 h-48 object-cover rounded mt-2"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mr-4"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </Form>
+          </Modal>
+        )}
+
+        {book.reviews?.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
             {book.reviews.map((review, index) => (
@@ -207,7 +373,7 @@ export default function BookDetailPage() {
           </div>
         )}
 
-        {book.comments.length > 0 && (
+        {book.comments?.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold mb-4">Comments</h2>
             {book.comments.map((comment, index) => (

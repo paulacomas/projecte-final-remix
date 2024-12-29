@@ -16,6 +16,7 @@ export default function LoggedInNavigation() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -24,6 +25,8 @@ export default function LoggedInNavigation() {
 
       // Eliminar el token del almacenamiento local
       localStorage.removeItem("token");
+      document.cookie =
+        "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
       // Redirigir al login
       navigate("/login");

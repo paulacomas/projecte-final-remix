@@ -19,19 +19,23 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
-        throw new Error("Login failed");
+        const errorData = await response.json(); // Aquí obtenemos el mensaje de error del backend
+        throw new Error(errorData.message || "Login failed"); // Manejamos el error correctamente
       }
 
       const data = await response.json();
-      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("token", data.token);
 
+      // Redirigir después de iniciar sesión correctamente
       window.location.href = "/";
-    } catch {
-      setError("Invalid email or password");
+    } catch (err: any) {
+      // Mostrar un mensaje de error más detallado
+      setError(err.message || "An error occurred during login");
     }
   };
 

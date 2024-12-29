@@ -40,41 +40,6 @@ export const fetchCurrentUser = async (token: string) => {
   }
 };
 
-export const updateBook = async (
-  bookId: string,
-  formData: FormData,
-  token: string
-) => {
-  const updatedBookData = {
-    title: formData.get("title"),
-    author: formData.get("author"),
-    description: formData.get("description"),
-    gender: formData.get("gender"),
-    image_book: formData.get("image_book"),
-    review: formData.get("review"),
-  };
-
-  try {
-    const response = await fetch(`http://localhost/api/books/${bookId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(updatedBookData),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to update the book");
-    }
-
-    const updatedBook = await response.json();
-    return updatedBook;
-  } catch (error) {
-    throw new Error(error.message || "Error updating book");
-  }
-};
-
 export const deleteBook = async (bookId: string, token: string) => {
   try {
     const response = await fetch(`http://localhost/api/books/${bookId}`, {
@@ -89,5 +54,39 @@ export const deleteBook = async (bookId: string, token: string) => {
     }
   } catch (error) {
     throw new Error("Error deleting the book");
+  }
+};
+
+export const updateBook = async (
+  bookId: string,
+  bookData: {
+    title: string;
+    description: string;
+    opinion: string;
+    review: number;
+    gender: string;
+    author: string;
+    image_book: File;
+  },
+  token: string
+) => {
+  try {
+    const response = await fetch(`http://localhost/api/books/${bookId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bookData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update the book");
+    }
+
+    const updatedBook = await response.json();
+    return updatedBook;
+  } catch (error) {
+    throw new Error(error.message || "Error updating book");
   }
 };
