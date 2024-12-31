@@ -6,10 +6,21 @@ import {
   fetchCurrentUser,
   deleteBook,
   updateBook,
+  addReview,
+  deleteReview,
+  updateReview,
+  addComment,
+  deleteComment,
+  updateComment,
 } from "../data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { ActionFunction, LoaderFunction } from "@remix-run/node";
 import Modal from "../components/Modal";
+import Reviews from "~/components/Reviews";
+import Comments from "~/components/Comments";
+import AddReviewForm from "~/components/AddReviewForm";
+import { comment } from "postcss";
+import AddCommentForm from "~/components/AddCommentForm";
 
 // Tipos para usuarios, comentarios, y detalles del libro
 interface User {
@@ -18,14 +29,30 @@ interface User {
 }
 
 interface Comment {
-  user: User;
+  id: string;
+  user?: {
+    id: number;
+    name: string;
+  };
+  user_id?: number; // Asegúrate de agregar esta propiedad si debe existir
+  book_id?: number;
   content: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface Review {
-  user: User;
-  rating: number;
-  content: string;
+  id: string;
+  user?: {
+    id: number;
+    name: string;
+  };
+  user_id?: number; // Asegúrate de agregar esta propiedad si debe existir
+  book_id?: number;
+  score: number;
+  comment: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface BookDetails {
@@ -90,6 +117,10 @@ export default function BookDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [editReview, setEditReview] = useState<Review | null>(null); // Estado para la reseña a editar
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [editComment, setEditComment] = useState<Comment | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -144,6 +175,260 @@ export default function BookDetailPage() {
       setIsModalOpen(false);
     } catch (error) {
       setError("Error updating the book");
+    }
+  };
+  const handleAddComment = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token");
+    if (!book || !token) return;
+
+    const formData = new FormData(event.currentTarget);
+    const commentContent = formData.get("content") as string;
+
+    // Validación antes de enviar
+    if (!commentContent) {
+      setError("Invalid comment content.");
+      return;
+    }
+
+    try {
+      const commentData = commentContent; // Preparamos el comentario
+      const addedComment = await addComment(book.id, commentData, token); // Usamos la función de agregar comentario
+      console.log(addedComment);
+
+      const formattedComment: Comment = {
+        id: addedComment.data.comment.id,
+        user: {
+          id: addedComment.data.comment.user.id,
+          name: addedComment.data.comment.user.name,
+        },
+        content: addedComment.data.comment.content, // Guardamos el contenido del comentario
+      };
+
+      // Actualizamos los comentarios en el estado, manteniendo las reseñas intactas
+      setBook((prevBook) => {
+        if (!prevBook) return prevBook; // Evita errores si no hay libro
+        const updatedBook = {
+          ...prevBook,
+          comments: [...prevBook.comments, formattedComment], // Actualizamos la lista de comentarios
+        };
+        console.log(updatedBook);
+        return updatedBook;
+      });
+      setIsCommentModalOpen(false); // Cerramos el modal
+    } catch (error) {
+      setError("Error adding the comment");
+    }
+  };
+
+  const handleEditComment = (commentId: string, content: string) => {
+    setEditComment({ id: commentId, content });
+    setIsCommentModalOpen(true); // Abrimos el modal de edición
+  };
+
+  const handleEditCommentSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token");
+    if (!token || !editComment) return;
+
+    const formData = new FormData(event.currentTarget);
+    const updatedContent = formData.get("content") as string;
+    console.log("updating...");
+    // Preparamos los datos del comentario que se va a actualizar
+    const commentData = updatedContent;
+
+    try {
+      const updatedComment = await updateComment(
+        editComment.id,
+        commentData,
+        token
+      ); // Cambiar a la función de actualización de comentario
+
+      const formattedUpdatedComments: Comment = {
+        id: updatedComment.data.id,
+        user_id: updatedComment.data.user_id, // Aquí no accedemos a 'user'
+        book_id: updatedComment.data.book_id,
+        content: updatedComment.data.content,
+        created_at: updatedComment.data.created_at,
+        updated_at: updatedComment.data.updated_at,
+      };
+
+      console.log("Formatted Updated Review:", formattedUpdatedComments);
+
+      // Actualizamos el estado del libro con la reseña editada
+      setBook((prevBook) => {
+        if (!prevBook) return prevBook; // Si no hay un libro, no hacer nada
+        return {
+          ...prevBook,
+          comments: prevBook.comments.map((comment) =>
+            comment.id === editComment.id
+              ? { ...comment, ...formattedUpdatedComments } // Reemplazamos la reseña con la actualizada
+              : comment
+          ),
+        };
+      });
+
+      setIsCommentModalOpen(false);
+    } catch (error) {
+      setError("Error updating the comment");
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      await deleteComment(commentId, token); // Cambiar a la función de eliminar comentario
+      setBook((prevBook) => ({
+        ...prevBook!,
+        comments: prevBook!.comments.filter(
+          (comment) => comment.id !== commentId
+        ),
+      }));
+    } catch (error) {
+      setError("Error deleting the comment");
+    }
+  };
+
+  const handleAddReview = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token");
+    if (!book || !token) return;
+
+    const formData = new FormData(event.currentTarget);
+    const reviewContent = formData.get("comment") as string;
+    const reviewRating = Number(formData.get("score"));
+
+    // Validación antes de enviar
+    if (!reviewContent || reviewRating < 1 || reviewRating > 5) {
+      setError("Invalid review content or rating.");
+      return;
+    }
+
+    try {
+      const reviewData = { content: reviewContent, rating: reviewRating };
+      const addedReview = await addReview(book.id, reviewData, token);
+
+      // Asegurarnos de que la reseña tenga el formato correcto
+      const formattedReview: Review = {
+        id: addedReview.data.id, // Usamos el ID retornado
+        user: {
+          id: addedReview.data.review.user.id,
+          name: addedReview.data.review.user.name,
+        },
+        user_id: addedReview.data.review.user_id, // Usamos el user_id dentro de review
+        book_id: addedReview.data.review.book_id, // Usamos el book_id dentro de review
+        score: addedReview.data.review.score, // Usamos score en vez de rating
+        comment: addedReview.data.review.comment, // Usamos comment en vez de content
+      };
+
+      setBook((prevBook) => {
+        // Aseguramos que las reseñas estén bien formateadas
+        const updatedBook = {
+          ...prevBook!,
+          reviews: [...prevBook!.reviews, formattedReview],
+        };
+        console.log("Updated Book after adding review:", updatedBook);
+        return updatedBook;
+      });
+
+      setIsReviewModalOpen(false);
+    } catch (error) {
+      setError("Error adding the review");
+    }
+  };
+
+  const handleEditReview = (
+    reviewId: string,
+    content: string,
+    rating: number
+  ) => {
+    setEditReview({ id: reviewId, content, rating });
+    setIsReviewModalOpen(true); // Abrimos el modal de edición
+  };
+
+  const handleEditReviewSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token");
+    if (!token || !editReview) return;
+
+    const formData = new FormData(event.currentTarget);
+    const updatedContent = formData.get("comment") as string;
+    const updatedRating = Number(formData.get("score"));
+
+    // Preparamos los datos de la reseña que se va a actualizar
+    const reviewData = { content: updatedContent, rating: updatedRating };
+
+    try {
+      // Actualizamos la reseña usando la función de actualización correspondiente
+      const updatedReview = await updateReview(
+        editReview.id,
+        reviewData,
+        token
+      );
+
+      // Verificamos que los datos estén presentes
+      if (!updatedReview || !updatedReview.data) {
+        console.error("La respuesta de la API no contiene los datos esperados");
+        setError("Error updating the review: Invalid response data");
+        return;
+      }
+
+      // Creamos el formato de la reseña actualizada (sin 'user')
+      const formattedUpdatedReview: Review = {
+        id: updatedReview.data.id,
+        user_id: updatedReview.data.user_id, // Aquí no accedemos a 'user'
+        book_id: updatedReview.data.book_id,
+        score: updatedReview.data.score,
+        comment: updatedReview.data.comment,
+        created_at: updatedReview.data.created_at,
+        updated_at: updatedReview.data.updated_at,
+      };
+
+      console.log("Formatted Updated Review:", formattedUpdatedReview);
+
+      // Actualizamos el estado del libro con la reseña editada
+      setBook((prevBook) => {
+        if (!prevBook) return prevBook; // Si no hay un libro, no hacer nada
+        return {
+          ...prevBook,
+          reviews: prevBook.reviews.map((review) =>
+            review.id === editReview.id
+              ? { ...review, ...formattedUpdatedReview } // Reemplazamos la reseña con la actualizada
+              : review
+          ),
+        };
+      });
+
+      // Cerramos el modal
+      setIsReviewModalOpen(false);
+    } catch (error) {
+      console.error("Error during review update:", error);
+      setError("Error updating the review");
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      await deleteReview(reviewId, token); // Asegúrate de tener una función para eliminar reseñas
+      setBook((prevBook) => ({
+        ...prevBook!,
+        reviews: prevBook!.reviews.filter((review) => review.id !== reviewId),
+      }));
+    } catch (error) {
+      setError("Error deleting the review");
     }
   };
 
@@ -204,157 +489,73 @@ export default function BookDetailPage() {
           </div>
         )}
 
-        {isModalOpen && (
-          <Modal onClose={() => setIsModalOpen(false)}>
-            <h2 className="text-xl font-semibold mb-4">Edit Book</h2>
-            <Form method="POST" onSubmit={handleSaveChanges}>
-              <input type="hidden" name="action" value="update" />
+        <button
+          onClick={() => {
+            setEditReview(null); // Reset the edit review state when adding a new review
+            setIsReviewModalOpen(true);
+          }}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+        >
+          Add Review
+        </button>
 
-              {/* Title */}
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1"
-                  htmlFor="title"
-                >
-                  Title
-                </label>
-                <input
-                  id="title"
-                  name="title"
-                  defaultValue={book.title}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Author */}
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1"
-                  htmlFor="author"
-                >
-                  Author
-                </label>
-                <input
-                  id="author"
-                  name="author"
-                  defaultValue={book.author}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1"
-                  htmlFor="description"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  defaultValue={book.description}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Opinion */}
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1"
-                  htmlFor="opinion"
-                >
-                  Opinion (optional)
-                </label>
-                <textarea
-                  id="opinion"
-                  name="opinion"
-                  defaultValue={book.opinion}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Review */}
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1"
-                  htmlFor="review"
-                >
-                  Rating (1 to 5)
-                </label>
-                <input
-                  id="review"
-                  name="review"
-                  type="number"
-                  min="1"
-                  max="5"
-                  defaultValue={book.review}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Gender */}
-              <div className="mb-4">
-                <label
-                  className="block text-sm font-medium mb-1"
-                  htmlFor="gender"
-                >
-                  Genre
-                </label>
-                <input
-                  id="gender"
-                  name="gender"
-                  defaultValue={book.gender}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 mr-4"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </Form>
+        {isReviewModalOpen && (
+          <Modal onClose={() => setIsReviewModalOpen(false)}>
+            <h2 className="text-xl font-semibold mb-4">
+              {editReview ? "Edit Review" : "Add Review"}
+            </h2>
+            <AddReviewForm
+              bookId={book.id}
+              reviewData={editReview} // Pasa los datos de la reseña a editar
+              onClose={() => setIsReviewModalOpen(false)}
+              onSubmit={editReview ? handleEditReviewSubmit : handleAddReview}
+            />
           </Modal>
         )}
 
-        {book.reviews?.length > 0 && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
-            {book.reviews.map((review, index) => (
-              <div key={index} className="border-b border-gray-200 pb-4 mb-4">
-                <div className="flex items-center mb-2">
-                  <p className="text-lg font-medium">{review.user.name}</p>
-                  <p className="ml-4 text-sm text-gray-500">
-                    {review.rating} / 5
-                  </p>
-                </div>
-                <p className="text-gray-700">{review.content}</p>
-              </div>
-            ))}
-          </div>
+        {isCommentModalOpen && (
+          <Modal onClose={() => setIsCommentModalOpen(false)}>
+            <h2 className="text-xl font-semibold mb-4">
+              {editComment ? "Edit Comment" : "Add Comment"}
+            </h2>
+            <AddCommentForm
+              bookId={book.id}
+              commentData={editComment || null} // Pasa los datos de la reseña a editar
+              onClose={() => setIsCommentModalOpen(false)}
+              onSubmit={
+                editComment ? handleEditCommentSubmit : handleAddComment
+              }
+            />
+          </Modal>
         )}
 
-        {book.comments?.length > 0 && (
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-2xl font-semibold mb-4">Comments</h2>
-            {book.comments.map((comment, index) => (
-              <div key={index} className="border-b border-gray-200 pb-4 mb-4">
-                <p className="text-lg font-medium">{comment.user.name}</p>
-                <p className="text-gray-700">{comment.content}</p>
-              </div>
-            ))}
-          </div>
+        {book.reviews && (
+          <Reviews
+            reviews={book.reviews}
+            bookUserid={book.user_id}
+            currentUserId={currentUser?.id || ""}
+            onEdit={handleEditReview}
+            onDelete={handleDeleteReview}
+          />
+        )}
+        <button
+          onClick={() => {
+            setEditComment(null); // Reset the edit review state when adding a new review
+            setIsCommentModalOpen(true);
+          }}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+        >
+          Add Comment
+        </button>
+
+        {book.comments && (
+          <Comments
+            comments={book.comments}
+            bookUserid={book.user_id}
+            currentUserId={currentUser?.id || ""}
+            onEdit={handleEditComment}
+            onDelete={handleDeleteComment}
+          />
         )}
       </main>
     </div>

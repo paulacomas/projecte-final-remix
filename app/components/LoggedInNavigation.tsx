@@ -41,6 +41,9 @@ export default function LoggedInNavigation() {
         Dashboard
       </Link>
       <div>
+        <Link to="/my-books" className="text-lg font-semibold  mr-4">
+          My Books
+        </Link>
         <Link
           to="/books/add"
           className="text-green-500 font-medium hover:underline mr-4"
