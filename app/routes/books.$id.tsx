@@ -21,6 +21,7 @@ import Comments from "~/components/Comments";
 import AddReviewForm from "~/components/AddReviewForm";
 import { comment } from "postcss";
 import AddCommentForm from "~/components/AddCommentForm";
+import EditBookForm from "~/components/EditBookForm";
 
 // Tipos para usuarios, comentarios, y detalles del libro
 interface User {
@@ -152,31 +153,40 @@ export default function BookDetailPage() {
     fetchData();
   }, [id, navigate]);
 
-  const handleSaveChanges = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  const handleSaveChanges = async (updatedBook: {
+    id: string;
+    title: string;
+    author: string;
+    description: string;
+    opinion?: string;
+    review?: number;
+    gender: string;
+    image_book?: File | null;
+  }) => {
     const token = localStorage.getItem("token");
 
-    if (!book || !token) return;
+    if (!updatedBook || !token) return;
 
     try {
-      const bookData = {
-        title: formData.get("title") as string,
-        description: formData.get("description") as string,
-        opinion: formData.get("opinion") as string,
-        review: Number(formData.get("review")),
-        gender: formData.get("gender") as string,
-        author: formData.get("author") as string,
+      const updatedData = {
+        title: updatedBook.title,
+        description: updatedBook.description,
+        opinion: updatedBook.opinion,
+        review: updatedBook.review,
+        gender: updatedBook.gender,
+        author: updatedBook.author,
+        image_book: updatedBook.image_book,
       };
 
-      const updatedBook = await updateBook(book.id, bookData, token);
-      console.log(updatedBook);
-      setBook(updatedBook.data);
+      const result = await updateBook(updatedBook.id, updatedData, token);
+      console.log(result);
+      setBook(result.data);
       setIsModalOpen(false);
     } catch (error) {
       setError("Error updating the book");
     }
   };
+
   const handleAddComment = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -472,7 +482,9 @@ export default function BookDetailPage() {
         {isOwner && (
           <div className="flex space-x-4 mb-8">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setIsModalOpen(true);
+              }}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               Edit Book
@@ -511,6 +523,16 @@ export default function BookDetailPage() {
                 reviewData={editReview} // Pasa los datos de la reseña a editar
                 onClose={() => setIsReviewModalOpen(false)}
                 onSubmit={editReview ? handleEditReviewSubmit : handleAddReview}
+              />
+            </Modal>
+          )}
+
+          {isModalOpen && (
+            <Modal onClose={() => setIsModalOpen(false)}>
+              <EditBookForm
+                book={book} // Asegúrate de pasar el libro a editar
+                onCancel={() => setIsModalOpen(false)} // Cerrar el modal
+                onSubmit={handleSaveChanges} // Función para manejar el envío del formulario
               />
             </Modal>
           )}

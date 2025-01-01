@@ -6,10 +6,10 @@ interface EditBookFormProps {
     title: string;
     author: string;
     description: string;
-    opinion?: string; // Nuevo campo para opinión
-    review?: number; // Nuevo campo para review (calificación)
-    gender: string; // Nuevo campo para género
-    image_book?: string; // Nuevo campo para la imagen
+    opinion?: string;
+    review?: number;
+    gender: string;
+    image_book?: string;
   };
   onCancel: () => void;
   onSubmit: (updatedBook: {
@@ -37,9 +37,9 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
   const [gender, setGender] = useState(book.gender);
   const [imageBook, setImageBook] = useState<File | null>(null);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  // Cambiar handleSubmit para llamar a onSubmit con los datos del libro
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Enviar los datos al controlador onSubmit, incluyendo todos los campos
     onSubmit({
       id: book.id,
       title,
