@@ -488,75 +488,80 @@ export default function BookDetailPage() {
             </Form>
           </div>
         )}
+        <div className="mb-8">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => {
+                setEditReview(null); // Reset the edit review state when adding a new review
+                setIsReviewModalOpen(true);
+              }}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              Add Review
+            </button>
+          </div>
 
-        <button
-          onClick={() => {
-            setEditReview(null); // Reset the edit review state when adding a new review
-            setIsReviewModalOpen(true);
-          }}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-        >
-          Add Review
-        </button>
+          {isReviewModalOpen && (
+            <Modal onClose={() => setIsReviewModalOpen(false)}>
+              <h2 className="text-xl font-semibold mb-4">
+                {editReview ? "Edit Review" : "Add Review"}
+              </h2>
+              <AddReviewForm
+                bookId={book.id}
+                reviewData={editReview} // Pasa los datos de la reseña a editar
+                onClose={() => setIsReviewModalOpen(false)}
+                onSubmit={editReview ? handleEditReviewSubmit : handleAddReview}
+              />
+            </Modal>
+          )}
 
-        {isReviewModalOpen && (
-          <Modal onClose={() => setIsReviewModalOpen(false)}>
-            <h2 className="text-xl font-semibold mb-4">
-              {editReview ? "Edit Review" : "Add Review"}
-            </h2>
-            <AddReviewForm
-              bookId={book.id}
-              reviewData={editReview} // Pasa los datos de la reseña a editar
-              onClose={() => setIsReviewModalOpen(false)}
-              onSubmit={editReview ? handleEditReviewSubmit : handleAddReview}
+          {isCommentModalOpen && (
+            <Modal onClose={() => setIsCommentModalOpen(false)}>
+              <h2 className="text-xl font-semibold mb-4">
+                {editComment ? "Edit Comment" : "Add Comment"}
+              </h2>
+              <AddCommentForm
+                bookId={book.id}
+                commentData={editComment || null} // Pasa los datos de la reseña a editar
+                onClose={() => setIsCommentModalOpen(false)}
+                onSubmit={
+                  editComment ? handleEditCommentSubmit : handleAddComment
+                }
+              />
+            </Modal>
+          )}
+
+          {book.reviews && (
+            <Reviews
+              reviews={book.reviews}
+              bookUserid={book.user_id}
+              currentUserId={currentUser?.id || ""}
+              onEdit={handleEditReview}
+              onDelete={handleDeleteReview}
             />
-          </Modal>
-        )}
+          )}
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={() => {
+                setEditComment(null); // Reset the edit review state when adding a new review
+                setIsCommentModalOpen(true);
+              }}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+            >
+              Add Comment
+            </button>
+          </div>
 
-        {isCommentModalOpen && (
-          <Modal onClose={() => setIsCommentModalOpen(false)}>
-            <h2 className="text-xl font-semibold mb-4">
-              {editComment ? "Edit Comment" : "Add Comment"}
-            </h2>
-            <AddCommentForm
-              bookId={book.id}
-              commentData={editComment || null} // Pasa los datos de la reseña a editar
-              onClose={() => setIsCommentModalOpen(false)}
-              onSubmit={
-                editComment ? handleEditCommentSubmit : handleAddComment
-              }
+          {book.comments && (
+            <Comments
+              comments={book.comments}
+              bookUserid={book.user_id}
+              currentUserId={currentUser?.id || ""}
+              onEdit={handleEditComment}
+              onDelete={handleDeleteComment}
             />
-          </Modal>
-        )}
-
-        {book.reviews && (
-          <Reviews
-            reviews={book.reviews}
-            bookUserid={book.user_id}
-            currentUserId={currentUser?.id || ""}
-            onEdit={handleEditReview}
-            onDelete={handleDeleteReview}
-          />
-        )}
-        <button
-          onClick={() => {
-            setEditComment(null); // Reset the edit review state when adding a new review
-            setIsCommentModalOpen(true);
-          }}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-        >
-          Add Comment
-        </button>
-
-        {book.comments && (
-          <Comments
-            comments={book.comments}
-            bookUserid={book.user_id}
-            currentUserId={currentUser?.id || ""}
-            onEdit={handleEditComment}
-            onDelete={handleDeleteComment}
-          />
-        )}
+          )}
+        </div>
       </main>
     </div>
   );
