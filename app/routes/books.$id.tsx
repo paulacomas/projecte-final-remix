@@ -12,6 +12,12 @@ import {
   addComment,
   deleteComment,
   updateComment,
+  addReply,
+  updateReplay,
+  deleteReplay,
+  unsaveBook,
+  saveBook,
+  getSavedBooks,
 } from "../data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { ActionFunction, LoaderFunction } from "@remix-run/node";
@@ -19,9 +25,9 @@ import Modal from "../components/Modal";
 import Reviews from "~/components/Reviews";
 import Comments from "~/components/Comments";
 import AddReviewForm from "~/components/AddReviewForm";
-import { comment } from "postcss";
 import AddCommentForm from "~/components/AddCommentForm";
 import EditBookForm from "~/components/EditBookForm";
+import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 
 // Tipos para usuarios, comentarios, y detalles del libro
 interface User {
@@ -40,6 +46,7 @@ interface Comment {
   content: string;
   created_at?: string;
   updated_at?: string;
+  replies?: Comment[]; // Add replies property
 }
 
 interface Review {
@@ -122,6 +129,7 @@ export default function BookDetailPage() {
   const [editReview, setEditReview] = useState<Review | null>(null); // Estado para la reseña a editar
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [editComment, setEditComment] = useState<Comment | null>(null);
+  const [savedBooks, setSavedBooks] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,6 +156,23 @@ export default function BookDetailPage() {
         setError("Error fetching book details or user data");
         navigate("/login?message=Invalid%20or%20expired%20token");
       }
+
+      const fetchSavedBooks = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          if (token) {
+            const response = await getSavedBooks(token);
+            const savedBookIds = response.data.map(
+              (book: { book_id: string }) => book.book_id
+            );
+            setSavedBooks(new Set(savedBookIds));
+          }
+        } catch (error) {
+          console.error("Error fetching saved books:", error);
+        }
+      };
+
+      fetchSavedBooks();
     };
 
     fetchData();
@@ -442,6 +467,119 @@ export default function BookDetailPage() {
     }
   };
 
+  const handleAddReply = async (
+    commentId: string,
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const formData = new FormData(event.currentTarget);
+    const replyContent = formData.get("response") as string;
+
+    if (!replyContent) {
+      setError("Reply content is required.");
+      return;
+    }
+
+    try {
+      const addedReply = await addReply(commentId, replyContent, token); // Función que agregarás en tu API.
+      setBook((prevBook) => {
+        if (!prevBook) return prevBook;
+        const updatedComments = prevBook.comments.map((comment) => {
+          if (comment.id === commentId) {
+            return {
+              ...comment, // Asegúrate de agregar las respuestas al comentario correspondiente
+              responses: [...(comment.responses || []), addedReply.data], // Agregamos la respuesta
+            };
+          }
+          return comment;
+        });
+
+        return { ...prevBook, comments: updatedComments };
+      });
+    } catch (error) {
+      setError("Error adding the reply.");
+    }
+  };
+
+  const toggleSaveBook = async (bookId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login?message=You%20need%20to%20be%20logged%20in");
+        console.error("No token found");
+        return;
+      }
+
+      const isSaved = savedBooks.has(bookId);
+
+      if (isSaved) {
+        await unsaveBook(bookId, token);
+        setSavedBooks((prev) => {
+          const updated = new Set(prev);
+          updated.delete(bookId);
+          return updated;
+        });
+      } else {
+        const response = await saveBook(bookId, token);
+        console.log("Save response:", response); // Depuración
+        setSavedBooks((prev) => new Set(prev).add(bookId));
+      }
+    } catch (error: any) {
+      console.error("Error toggling save book:", error.message);
+    }
+  };
+
+  const handleEditReply = async (replyId: string, updatedResponse: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      // Call your API to edit the reply in the database
+      const updatedReply = await updateReplay(replyId, updatedResponse, token); // editReply is your API function.
+
+      setBook((prevBook) => {
+        const updatedComments = prevBook.comments.map((comment) => {
+          const updatedReplies = comment.responses.map((reply) =>
+            reply.id === replyId
+              ? { ...reply, response: updatedResponse } // Update the reply in the state
+              : reply
+          );
+          return { ...comment, responses: updatedReplies };
+        });
+        return { ...prevBook, comments: updatedComments };
+      });
+    } catch (error) {
+      setError("Error editing the reply.");
+    }
+  };
+
+  // Handle deleting a reply
+  const handleReplyDelete = async (replyId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      // Call your API to delete the reply from the database
+      await deleteReplay(replyId, token); // deleteReply is your API function.
+
+      setBook((prevBook) => {
+        const updatedComments = prevBook.comments.map((comment) => {
+          const updatedReplies = comment.responses.filter(
+            (reply) => reply.id !== replyId // Filter out the deleted reply from the state
+          );
+          return { ...comment, responses: updatedReplies };
+        });
+        return { ...prevBook, comments: updatedComments };
+      });
+    } catch (error) {
+      setError("Error deleting the reply.");
+    }
+  };
+
   if (error) {
     return <div>{error}</div>;
   }
@@ -475,6 +613,21 @@ export default function BookDetailPage() {
                 {new Date(book.created_at).toLocaleDateString()}
               </p>
               <p className="text-lg text-gray-800 mt-4">{book.description}</p>
+
+              {/* Save button */}
+              <div className="mt-4 flex items-center">
+                <button
+                  onClick={() => toggleSaveBook(book.id)}
+                  className={`px-3 py-2 rounded-lg ${
+                    savedBooks.has(book.id)
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-700"
+                  }`}
+                  title={savedBooks.has(book.id) ? "Saved" : "Save"}
+                >
+                  {savedBooks.has(book.id) ? <FaBookmark /> : <FaRegBookmark />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -581,6 +734,9 @@ export default function BookDetailPage() {
               currentUserId={currentUser?.id || ""}
               onEdit={handleEditComment}
               onDelete={handleDeleteComment}
+              onReplyAdd={handleAddReply}
+              onReplyEdit={handleEditReply}
+              onReplyDelete={handleReplyDelete}
             />
           )}
         </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import StarRating from "./StarRating";
 
 interface Review {
   id: string;
@@ -31,7 +32,9 @@ const Reviews: React.FC<ReviewsProps> = ({
       <div key={review.id} className="border-b border-gray-200 pb-4 mb-4">
         <div className="flex items-center mb-2">
           <p className="text-lg font-medium">{review.user?.name}</p>
-          <p className="ml-4 text-sm text-gray-500">{review.score} / 5</p>
+          <div className="ml-4 flex items-center">
+            <StarRating score={review.score} />
+          </div>
         </div>
         <p className="text-gray-700">{review.comment}</p>
 

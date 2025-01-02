@@ -8,6 +8,7 @@ import Layout from "../components/Layout";
 import BooksList from "~/components/Books";
 import { fetchBooksForUser, fetchCurrentUser } from "~/data/data"; // Assuming fetchCurrentUser is available
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import Navigation from "../components/Layout";
 
 interface Book {
   id: string;
@@ -54,8 +55,15 @@ export default function MyBooks() {
   const { books, userId } = useLoaderData<LoaderData>(); // Get both books and userId from the loader
 
   return (
-    <div>
-      <BooksList books={books} currentUserId={userId} />{" "}
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <nav className="container mx-auto p-4">
+          <Navigation />
+        </nav>
+      </header>
+      <div>
+        <BooksList books={books} currentUserId={userId} />{" "}
+      </div>
     </div>
   );
 }
