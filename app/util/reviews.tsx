@@ -1,98 +1,43 @@
 import { addReview, deleteReview, updateReview } from "~/data/data";
 import { Review } from "../types";
+import { useNotifications } from "~/contexts/NotificationContext";
 export const handleAddReview = async (
-  event: React.FormEvent<HTMLFormElement>,
-  bookId: string,
-  setBook: React.Dispatch<React.SetStateAction<BookDetails | null>>,
-  setError: React.Dispatch<React.SetStateAction<string | null>>,
-  setIsReviewModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+  formData: FormData, // FormData desde el formulario
+  bookId: string, // ID del libro donde se agregará el comentario
+  token: string
 ) => {
-  event.preventDefault();
-  const token = localStorage.getItem("token");
-  const formData = new FormData(event.currentTarget);
-  const reviewContent = formData.get("comment") as string;
-  const reviewRating = Number(formData.get("score"));
-
-  if (!reviewContent || reviewRating < 1 || reviewRating > 5) {
-    setError("Invalid review content or rating.");
-    return;
-  }
+  const reviewContent = formData.get("content") as string;
+  const reviewRating = Number(formData.get("rating"));
 
   try {
     const reviewData = { content: reviewContent, rating: reviewRating };
     const addedReview = await addReview(bookId, reviewData, token);
-
-    const formattedReview: Review = {
-      id: addedReview.data.id,
-      user: {
-        id: addedReview.data.review.user.id,
-        name: addedReview.data.review.user.name,
-      },
-      user_id: addedReview.data.review.user_id,
-      book_id: addedReview.data.review.book_id,
-      score: addedReview.data.review.score,
-      comment: addedReview.data.review.comment,
-    };
-
-    setBook((prevBook) => {
-      const updatedBook = {
-        ...prevBook!,
-        reviews: [...prevBook!.reviews, formattedReview],
-      };
-      return updatedBook;
-    });
-
-    setIsReviewModalOpen(false);
+    console.log(addedReview);
+    return addedReview;
   } catch (error) {
-    setError("Error adding the review");
+    return error;
   }
 };
 
 export const handleEditReviewSubmit = async (
-  event: React.FormEvent<HTMLFormElement>,
-  editReview: Review | null,
-  setBook: React.Dispatch<React.SetStateAction<BookDetails | null>>,
-  setError: React.Dispatch<React.SetStateAction<string | null>>,
-  setIsReviewModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+  formData: FormData,
+  token: string
 ) => {
-  event.preventDefault();
-  const token = localStorage.getItem("token");
-  if (!token || !editReview) return;
-
-  const formData = new FormData(event.currentTarget);
-  const updatedContent = formData.get("comment") as string;
-  const updatedRating = Number(formData.get("score"));
+  console.log("review" + formData);
+  const updatedContent = formData.get("content") as string;
+  const updatedRating = Number(formData.get("rating"));
+  const reviewtId = formData.get("commentId") as string;
 
   const reviewData = { content: updatedContent, rating: updatedRating };
 
   try {
-    const updatedReview = await updateReview(editReview.id, reviewData, token);
-
-    const formattedUpdatedReview: Review = {
-      id: updatedReview.data.id,
-      user_id: updatedReview.data.user_id,
-      book_id: updatedReview.data.book_id,
-      score: updatedReview.data.score,
-      comment: updatedReview.data.comment,
-      created_at: updatedReview.data.created_at,
-      updated_at: updatedReview.data.updated_at,
-    };
-
-    setBook((prevBook) => {
-      if (!prevBook) return prevBook;
-      return {
-        ...prevBook,
-        reviews: prevBook.reviews.map((review) =>
-          review.id === editReview.id
-            ? { ...review, ...formattedUpdatedReview }
-            : review
-        ),
-      };
-    });
-
-    setIsReviewModalOpen(false);
+    const updatedReview = await updateReview(reviewtId, reviewData, token);
+    if (!updatedReview.ok) {
+      return null;
+    }
+    return updatedReview;
   } catch (error) {
-    setError("Error updating the review");
+    return error;
   }
 };
 

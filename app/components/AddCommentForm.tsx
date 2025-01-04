@@ -1,46 +1,125 @@
 import React, { useState, useEffect } from "react";
+import { Form, useSubmit } from "@remix-run/react";
 import { validateCommentContent } from "../util/validations";
-import { Form } from "@remix-run/react";
+import { fetchBookDetails } from "~/data/data";
 
 interface AddCommentFormProps {
   bookId: string;
   onClose: () => void;
-  onSubmit: (content: string) => void; // Cambiado para pasar solo el contenido del comentario
-  commentData?: { content: string }; // Recibe los datos del comentario si es edición
+  commentData?: { content: string; id: string };
+  onCommentAdded: (newComment: { content: string; id: string }) => void;
+  onCommentEdited: (updatedComment: { content: string; id: string }) => void;
 }
 
 const AddCommentForm: React.FC<AddCommentFormProps> = ({
   bookId,
   onClose,
-  onSubmit,
   commentData,
+  onCommentAdded,
+  onCommentEdited,
 }) => {
   const [content, setContent] = useState<string>(commentData?.content || "");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const submit = useSubmit();
 
   useEffect(() => {
-    if (commentData) {
-      setContent(commentData.content);
-    }
-  }, [commentData]);
+    if (isSubmitted) {
+      const fetchUpdatedComments = async () => {
+        const token = localStorage.getItem("token");
+        try {
+          const book = await fetchBookDetails(bookId, token);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+          // Buscar el comentario actualizado o agregado
+          let targetComment;
+          if (commentData) {
+            // Si es edición, buscar por ID
+            targetComment = book.comments.find(
+              (comment: any) => comment.id === commentData.id
+            );
+          } else {
+            // Si es nuevo, tomar el último de la lista
+            targetComment = book.comments[book.comments.length - 1];
+          }
+
+          if (!targetComment) {
+            console.error("Comentario no encontrado.");
+            return;
+          }
+
+          console.log(
+            commentData ? "Comentario editado:" : "Comentario agregado:",
+            targetComment
+          );
+
+          // Llamar a la función correspondiente
+          if (commentData) {
+            onCommentEdited({
+              id: targetComment.id,
+              user_id: targetComment.user_id,
+              book_id: targetComment.book_id,
+              content: targetComment.content,
+              created_at: targetComment.created_at,
+              updated_at: targetComment.updated_at,
+            });
+          } else {
+            onCommentAdded({
+              data: { comment: targetComment, user: targetComment.user },
+            });
+          }
+        } catch (error) {
+          console.error(
+            "Error al obtener los comentarios actualizados:",
+            error
+          );
+        } finally {
+          setLoading(false); // Restablecer el estado de carga
+          onClose(); // Cerrar el modal después de obtener los comentarios
+        }
+      };
+
+      fetchUpdatedComments();
+    }
+  }, [
+    isSubmitted,
+    bookId,
+    onCommentAdded,
+    onCommentEdited,
+    onClose,
+    commentData,
+  ]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones usando el archivo util
+    // Validación del contenido
     const validationError = validateCommentContent(content);
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    // Si pasa las validaciones, limpia el error y envía los datos
-    setError(null);
-    onSubmit(content);
+    setLoading(true); // Activamos el estado de carga
+
+    // Preparamos los datos para el formulario
+    const formData = new FormData();
+    formData.append("content", content);
+    formData.append("bookId", bookId);
+    formData.append("action", commentData ? "edit-comment" : "add-comment");
+    if (commentData) formData.append("commentId", commentData.id);
+
+    // Enviar el formulario usando `submit`
+    submit(formData, { method: "post" });
+
+    // Simular finalización del submit
+    setTimeout(() => {
+      setIsSubmitted(true); // Establecer 'isSubmitted' para que el useEffect se ejecute
+    }, 1000);
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <Form method="post" onSubmit={handleSubmit}>
       <div className="mb-4">
         <label
           htmlFor="content"
@@ -72,8 +151,13 @@ const AddCommentForm: React.FC<AddCommentFormProps> = ({
         <button
           type="submit"
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          disabled={loading}
         >
-          {commentData ? "Update Comment" : "Add Comment"}
+          {loading
+            ? "Processing..."
+            : commentData
+            ? "Update Comment"
+            : "Add Comment"}
         </button>
       </div>
     </Form>
