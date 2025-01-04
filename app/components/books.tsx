@@ -5,6 +5,7 @@ import EditBookForm from "./EditBookForm";
 import Navigation from "./Layout";
 import { getSavedBooks, saveBook, unsaveBook, updateBook } from "~/data/data";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import { useNotifications } from "~/contexts/NotificationContext";
 
 interface Book {
   id: string;
@@ -29,6 +30,7 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [savedBooks, setSavedBooks] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     // Fetch saved books for the user
@@ -141,7 +143,7 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
 
             <div className="mt-4 flex justify-between">
               <Link
-                to={`/books/${book.id}`}
+                to={`/books/details/${book.id}`}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 View Details

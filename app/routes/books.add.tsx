@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom"; // Importar useNavigate
+import { useNotifications } from "~/contexts/NotificationContext";
 
 export default function PublishBookPage() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ export default function PublishBookPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate(); // Instanciar useNavigate
+  const { addNotification } = useNotifications();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -66,9 +68,10 @@ export default function PublishBookPage() {
 
       const data = await response.json(); // Suponiendo que la respuesta contenga los datos del libro creado.
       setSuccessMessage("Book published successfully!");
+      addNotification("Book published successfully!", "success");
 
       // Redirigir a la página del libro con su ID
-      navigate(`/books/${data.data.id}`); // Asegúrate de que el ID del libro se pase correctamente en la respuesta
+      navigate(`/books/details/${data.data.id}`); // Asegúrate de que el ID del libro se pase correctamente en la respuesta
 
       setFormData({
         title: "",
@@ -81,6 +84,7 @@ export default function PublishBookPage() {
       });
     } catch (error) {
       console.error("Error publishing book:", error);
+      addNotification("Error publishing the book. Please try again.", "error");
       setError("Error publishing the book. Please try again.");
     }
   };

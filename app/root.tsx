@@ -8,6 +8,8 @@ import {
 import type { LinksFunction } from "@remix-run/node";
 
 import "./tailwind.css";
+import Notification from "./components/Notification";
+import { NotificationProvider } from "./contexts/NotificationContext";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -41,5 +43,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <NotificationProvider>
+      <div>
+        {/* Global notification component */}
+        <Notification />
+        {/* Your main app content */}
+        <Outlet />
+      </div>
+    </NotificationProvider>
+  );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLoaderData } from "@remix-run/react";
+import { redirect, useLoaderData, useNavigate } from "@remix-run/react";
 import BooksList from "../components/books"; // Asegúrate de importar correctamente el componente BooksList
 import BookFilters from "~/components/BookFilters";
 import Navigation from "~/components/Layout";
@@ -16,6 +16,9 @@ export async function loader() {
     return data.data; // Retornar todos los libros
   } catch (error) {
     console.error("Error fetching books:", error);
+    redirect("/error", {
+      state: { error: "Error fetching books" },
+    });
     return [];
   }
 }
