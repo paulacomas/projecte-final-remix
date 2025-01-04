@@ -8,7 +8,6 @@ import {
   unsaveBook,
   saveBook,
   getSavedBooks,
-  addComment,
 } from "../data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { ActionFunction, LoaderFunction } from "@remix-run/node";
@@ -57,49 +56,28 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 };
 
-export const action = async ({ request, params }) => {
+// Action para manejar actualizaciones y eliminación de libros
+export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   const actionType = formData.get("action");
   const token = await getAuthTokenFromCookie(request.headers.get("Cookie"));
+  const { addNotification } = useNotifications();
 
   if (!token) {
-    return json({ error: "Unauthorized: No token provided" }, { status: 401 });
+    return redirect("/login");
   }
 
-  try {
-    switch (actionType) {
-      case "add-comment":
-        // Manejo de error al agregar comentario
-        return await handleAddComment(formData, params.id, token);
-      case "edit-comment":
-        // Manejo de error al editar comentario
-        const commentId = formData.get("commentId") as string;
-        const newContent = formData.get("content") as string;
-        return await handleEditCommentSubmit(commentId, newContent, token);
-      case "add-review":
-        // Manejo de error al agregar reseña
-        return await handleAddReview(formData, params.id, token);
-      case "edit-review":
-        // Manejo de error al editar reseña
-        return await handleEditReviewSubmit(formData, token);
-      case "delete-book":
-        // Manejo de error al eliminar libro
-        return await handleDeleteBook(params.id, token);
-      case "edit-book":
-        // Manejo de error al editar libro
-        return await handleEditBook(params.id, token);
-      default:
-        // Manejo de acción no válida
-        return json({ error: "Invalid action" }, { status: 400 });
+  if (actionType === "delete") {
+    try {
+      await deleteBook(params.id, token);
+      return redirect("/");
+    } catch (error) {
+      addNotification("Error deleting the book!", "error");
+      return json({ error: "Error deleting the book" }, { status: 500 });
     }
-  } catch (error) {
-    // Si hay un error no esperado, captúralo y devuelve una respuesta de error
-    console.error("Error processing action:", error);
-    return json(
-      { error: "Something went wrong. Please try again later." },
-      { status: 500 }
-    );
   }
+
+  return null;
 };
 
 export default function BookDetailPage() {
@@ -200,73 +178,6 @@ export default function BookDetailPage() {
     }
   };
 
-  const handleAddCom = (addedComment: Comment) => {
-    const formattedComment: Comment = {
-      id: addedComment.data.comment.id,
-      user: {
-        id: addedComment.data.comment.user.id,
-        name: addedComment.data.comment.user.name,
-      },
-      content: addedComment.data.comment.content,
-    };
-
-    setBook((prevBook) => {
-      if (!prevBook) return prevBook;
-      const updatedBook = {
-        ...prevBook,
-        comments: [...prevBook.comments, formattedComment], // Agrega el nuevo comentario a la lista de comentarios del libro
-      };
-      return updatedBook;
-    });
-    return formattedComment;
-  };
-  const AddReview = (addedReview: Review) => {
-    const formattedReview: Review = {
-      id: addedReview.data.id,
-      user: {
-        id: addedReview.data.review.user.id,
-        name: addedReview.data.review.user.name,
-      },
-      user_id: addedReview.data.review.user_id,
-      book_id: addedReview.data.review.book_id,
-      score: addedReview.data.review.score,
-      comment: addedReview.data.review.comment,
-    };
-
-    setBook((prevBook) => {
-      const updatedBook = {
-        ...prevBook!,
-        reviews: [...prevBook!.reviews, formattedReview],
-      };
-      return updatedBook;
-    });
-  };
-  const addeditcom = (editComment: Comment) => {
-    setBook((prevBook) => {
-      if (!prevBook) return prevBook;
-      return {
-        ...prevBook,
-        comments: prevBook.comments.map((comment) =>
-          comment.id === editComment.id
-            ? { ...comment, ...editComment }
-            : comment
-        ),
-      };
-    });
-  };
-
-  const addeditreview = (editReview: Review) => {
-    setBook((prevBook) => {
-      if (!prevBook) return prevBook;
-      return {
-        ...prevBook,
-        reviews: prevBook.reviews.map((review) =>
-          review.id === editReview.id ? { ...review, ...editReview } : review
-        ),
-      };
-    });
-  };
-
   if (error) {
     return <div>{error}</div>;
   }
@@ -360,10 +271,27 @@ export default function BookDetailPage() {
               </h2>
               <AddReviewForm
                 bookId={book.id}
+                reviewData={editReview} // Pasa los datos de la reseña a editar
                 onClose={() => setIsReviewModalOpen(false)}
-                reviewData={editReview}
-                onReviewAdded={AddReview}
-                onReviewEdited={addeditreview}
+                onSubmit={
+                  editReview
+                    ? (event) =>
+                        handleEditReviewSubmit(
+                          event,
+                          editReview,
+                          setBook,
+                          setError,
+                          setIsReviewModalOpen
+                        )
+                    : (event) =>
+                        handleAddReview(
+                          event,
+                          book.id,
+                          setBook,
+                          setError,
+                          setIsReviewModalOpen
+                        )
+                }
               />
             </Modal>
           )}
@@ -393,10 +321,27 @@ export default function BookDetailPage() {
               </h2>
               <AddCommentForm
                 bookId={book.id}
+                commentData={editComment || null} // Pasa los datos de la reseña a editar
                 onClose={() => setIsCommentModalOpen(false)}
-                commentData={editComment}
-                onCommentAdded={handleAddCom}
-                onCommentEdited={addeditcom} // Pasamos la función para actualizar la lista de comentarios
+                onSubmit={
+                  editComment
+                    ? (event) =>
+                        handleEditCommentSubmit(
+                          event,
+                          editComment,
+                          setBook,
+                          setError,
+                          setIsCommentModalOpen
+                        )
+                    : (event) =>
+                        handleAddComment(
+                          event,
+                          book.id,
+                          setBook,
+                          setError,
+                          setIsCommentModalOpen
+                        )
+                }
               />
             </Modal>
           )}
@@ -437,10 +382,14 @@ export default function BookDetailPage() {
               comments={book.comments}
               bookUserid={book.user_id}
               currentUserId={currentUser?.id || ""}
-              onEdit={(commentId: string, content: string) => {
-                setEditComment({ id: commentId, content });
-                setIsCommentModalOpen(true);
-              }}
+              onEdit={(commentId: string, content: string) =>
+                handleEditComment(
+                  commentId,
+                  content,
+                  setEditComment,
+                  setIsCommentModalOpen
+                )
+              }
               onDelete={(commentId: string) =>
                 handleDeleteComment(commentId, setBook, setError)
               }

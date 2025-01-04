@@ -128,33 +128,37 @@ const Comments: React.FC<CommentsProps> = ({
           {openComment === comment.id && (
             <div className="mt-4 ml-6">
               <h3 className="text-xl font-semibold">Replies</h3>
-              {comment.responses.map((reply) => (
-                <div
-                  key={reply.id}
-                  className="border-t border-gray-300 mt-2 pt-2"
-                >
-                  <p className="text-gray-600">
-                    {reply.user.name}: {reply.response}
-                  </p>
-                  {(reply.user.id === currentUserId ||
-                    currentUserId === bookUserid) && (
-                    <div className="mt-2 flex space-x-4">
-                      <button
-                        onClick={() => openEditReplyModal(reply)}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => onReplyDelete(reply.id)}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+              {comment.responses.length > 0 ? (
+                comment.responses.map((reply) => (
+                  <div
+                    key={reply.id}
+                    className="border-t border-gray-300 mt-2 pt-2"
+                  >
+                    <p className="text-gray-600">
+                      {reply.user.name}: {reply.response}
+                    </p>
+                    {(reply.user.id === currentUserId ||
+                      currentUserId === bookUserid) && (
+                      <div className="mt-2 flex space-x-4">
+                        <button
+                          onClick={() => openEditReplyModal(reply)}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => onReplyDelete(reply.id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-600">No replies yet.</p>
+              )}
             </div>
           )}
         </div>

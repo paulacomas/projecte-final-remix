@@ -1,20 +1,48 @@
 import { addComment, deleteComment, updateComment } from "~/data/data";
 import { Comment } from "../types";
-import { comment } from "postcss";
 
 export const handleAddComment = async (
-  formData: FormData, // FormData desde el formulario
-  bookId: string, // ID del libro donde se agregará el comentario
-  token: string
+  event: React.FormEvent<HTMLFormElement>,
+  bookId: string,
+  setBook: React.Dispatch<React.SetStateAction<BookDetails | null>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setIsCommentModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
+  event.preventDefault(); // Evitar que la página se recargue al enviar el formulario
+
+  const formData = new FormData(event.currentTarget); // Obtiene los datos del formulario
   const commentContent = formData.get("content") as string; // Obtiene el contenido del comentario
 
+  if (!commentContent) {
+    setError("Invalid comment content."); // Si no hay contenido, muestra un error
+    return;
+  }
+
   try {
+    const token = localStorage.getItem("token");
     const addedComment = await addComment(bookId, commentContent, token); // Llama a la función para agregar el comentario
 
-    return addedComment;
+    const formattedComment: Comment = {
+      id: addedComment.data.comment.id,
+      user: {
+        id: addedComment.data.comment.user.id,
+        name: addedComment.data.comment.user.name,
+      },
+      content: addedComment.data.comment.content,
+    };
+
+    setBook((prevBook) => {
+      if (!prevBook) return prevBook;
+      const updatedBook = {
+        ...prevBook,
+        comments: [...prevBook.comments, formattedComment], // Agrega el nuevo comentario a la lista de comentarios del libro
+      };
+      return updatedBook;
+    });
+
+    setIsCommentModalOpen(false); // Cierra el modal después de agregar el comentario
   } catch (error) {
-    return error;
+    setError("Error adding the comment"); // Si ocurre un error, muestra un mensaje de error
   }
 };
 
@@ -29,39 +57,53 @@ export const handleEditComment = (
 };
 
 export const handleEditCommentSubmit = async (
-  commentId: string,
-  newContent: string,
-  token: string
+  event: React.FormEvent<HTMLFormElement>,
+  editComment: Comment | null,
+  setBook: React.Dispatch<React.SetStateAction<BookDetails | null>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setIsCommentModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
+  event.preventDefault();
+  const token = localStorage.getItem("token");
+
+  if (!token || !editComment) return;
+
+  const formData = new FormData(event.currentTarget);
+  const updatedContent = formData.get("content") as string;
+
+  const commentData = updatedContent;
+
   try {
-    const updatedComment = await updateComment(commentId, newContent, token);
-    return updatedComment;
+    const updatedComment = await updateComment(
+      editComment.id,
+      commentData,
+      token
+    );
 
-    // const formattedUpdatedComments: Comment = {
-    //   id: updatedComment.data.id,
-    //   user_id: updatedComment.data.user_id,
-    //   book_id: updatedComment.data.book_id,
-    //   content: updatedComment.data.content,
-    //   created_at: updatedComment.data.created_at,
-    //   updated_at: updatedComment.data.updated_at,
-    // };
+    const formattedUpdatedComments: Comment = {
+      id: updatedComment.data.id,
+      user_id: updatedComment.data.user_id,
+      book_id: updatedComment.data.book_id,
+      content: updatedComment.data.content,
+      created_at: updatedComment.data.created_at,
+      updated_at: updatedComment.data.updated_at,
+    };
 
-    // setBook((prevBook) => {
-    //   if (!prevBook) return prevBook;
-    //   return {
-    //     ...prevBook,
-    //     comments: prevBook.comments.map((comment) =>
-    //       comment.id === editComment.id
-    //         ? { ...comment, ...formattedUpdatedComments }
-    //         : comment
-    //     ),
-    //   };
-    // });
+    setBook((prevBook) => {
+      if (!prevBook) return prevBook;
+      return {
+        ...prevBook,
+        comments: prevBook.comments.map((comment) =>
+          comment.id === editComment.id
+            ? { ...comment, ...formattedUpdatedComments }
+            : comment
+        ),
+      };
+    });
 
-    // setIsCommentModalOpen(false);
+    setIsCommentModalOpen(false);
   } catch (error) {
-    console.log(error);
-    //setError("Error updating the comment");
+    setError("Error updating the comment");
   }
 };
 
