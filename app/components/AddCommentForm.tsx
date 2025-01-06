@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { validateCommentContent } from "../util/validations"; // Asegúrate de que la ruta sea correcta
 
 interface AddCommentFormProps {
   bookId: string;
@@ -14,6 +15,7 @@ const AddCommentForm: React.FC<AddCommentFormProps> = ({
   commentData,
 }) => {
   const [content, setContent] = useState<string>(commentData?.content || "");
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (commentData) {
@@ -21,8 +23,21 @@ const AddCommentForm: React.FC<AddCommentFormProps> = ({
     }
   }, [commentData]);
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const validationError = validateCommentContent(content); // Llamar a la función de validación
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setError(""); // Limpiar error si la validación es exitosa
+    onSubmit(event); // Llamar al handler de submit
+  };
+
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={handleSubmit}>
       <div className="mb-4">
         <label
           htmlFor="content"
@@ -38,6 +53,7 @@ const AddCommentForm: React.FC<AddCommentFormProps> = ({
           onChange={(e) => setContent(e.target.value)}
           className="mt-1 p-2 w-full border border-gray-300 rounded-lg"
         />
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </div>
 
       <div className="flex justify-end space-x-4">
@@ -50,7 +66,10 @@ const AddCommentForm: React.FC<AddCommentFormProps> = ({
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          disabled={!content.trim()}
+          className={`px-4 py-2 ${
+            !content.trim() ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500"
+          } text-white rounded-lg hover:bg-blue-600`}
         >
           {commentData ? "Update Comment" : "Add Comment"}
         </button>

@@ -61,7 +61,6 @@ export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   const actionType = formData.get("action");
   const token = await getAuthTokenFromCookie(request.headers.get("Cookie"));
-  const { addNotification } = useNotifications();
 
   if (!token) {
     return redirect("/login");
@@ -72,7 +71,6 @@ export const action: ActionFunction = async ({ request, params }) => {
       await deleteBook(params.id, token);
       return redirect("/");
     } catch (error) {
-      addNotification("Error deleting the book!", "error");
       return json({ error: "Error deleting the book" }, { status: 500 });
     }
   }
@@ -195,7 +193,7 @@ export default function BookDetailPage() {
           <Layout />
         </nav>
       </header>
-      <main className="container mx-auto py-8">
+      <main className="container mx-auto py-8 p-6">
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h1 className="text-3xl font-semibold mb-4">{book.title}</h1>
           <div className="flex items-center mb-6">

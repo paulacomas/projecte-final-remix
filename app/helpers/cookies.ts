@@ -24,3 +24,9 @@ export const getAuthTokenFromCookie = (cookieHeader: string | null) => {
 
   return decodeURIComponent(authToken); // Decodificamos el valor de la cookie en caso de que esté codificado
 };
+
+// Crear una cookie para el mensaje flash
+export const flashMessageCookie = createCookie("flashMessage", {
+  httpOnly: true, // Para evitar acceso desde el lado del cliente
+  maxAge: 5, // Expira en 10 minutos (ajusta según lo necesario)
+});

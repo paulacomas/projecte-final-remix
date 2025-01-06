@@ -111,9 +111,9 @@ export default function ProfilePage() {
           <Layout />
         </nav>
       </header>
-      <main className="container mx-auto py-8">
+      <main className="container mx-auto py-8 p-6">
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center mb-6">
+          <div className="flex items-center mb-6 p-6">
             {/* Display user avatar if available */}
             {user.image_profile ? (
               <img
@@ -159,7 +159,7 @@ export default function ProfilePage() {
                     <div className="mt-4 flex justify-between">
                       {/* Botón View Details para todos los usuarios */}
                       <Link
-                        to={`/books/${book.id}`} // Use 'to' instead of 'href' for Remix's Link component
+                        to={`/books/details/${book.id}`} // Use 'to' instead of 'href' for Remix's Link component
                         className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                       >
                         View Details

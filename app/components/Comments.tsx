@@ -48,6 +48,7 @@ const Comments: React.FC<CommentsProps> = ({
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [editingReply, setEditingReply] = useState<Reply | null>(null);
   const [replyContent, setReplyContent] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const toggleReplies = (commentId: string) => {
     setOpenComment(openComment === commentId ? null : commentId);
@@ -57,12 +58,14 @@ const Comments: React.FC<CommentsProps> = ({
     setActiveCommentId(commentId);
     setEditingReply(null);
     setReplyContent("");
+    setErrorMessage(""); // Limpiar el error al abrir el modal
     setModalOpen(true);
   };
 
   const openEditReplyModal = (reply: Reply) => {
     setEditingReply(reply);
     setReplyContent(reply.response);
+    setErrorMessage(""); // Limpiar el error al abrir el modal de edición
     setModalOpen(true);
   };
 
@@ -71,10 +74,18 @@ const Comments: React.FC<CommentsProps> = ({
     setActiveCommentId(null);
     setEditingReply(null);
     setReplyContent("");
+    setErrorMessage(""); // Limpiar el error al cerrar el modal
   };
 
   const handleReplySubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validación: no permitir respuestas vacías
+    if (!replyContent.trim()) {
+      setErrorMessage("Reply cannot be empty.");
+      return;
+    }
+
     if (editingReply) {
       onReplyEdit(editingReply.id, replyContent);
     } else if (activeCommentId) {
@@ -157,7 +168,7 @@ const Comments: React.FC<CommentsProps> = ({
                   </div>
                 ))
               ) : (
-                <p className="text-gray-600">No replies yet.</p>
+                <p className="text-gray-500 mt-2">No replies yet</p>
               )}
             </div>
           )}
@@ -180,6 +191,9 @@ const Comments: React.FC<CommentsProps> = ({
                 className="p-2 border rounded-lg mb-4"
                 placeholder="Write your reply here..."
               />
+              {errorMessage && (
+                <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
+              )}
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"

@@ -443,3 +443,224 @@ export async function unsaveBook(bookId: string, token: string) {
   }
   return await response.json();
 }
+
+export async function fetchBooks() {
+  try {
+    const res = await fetch("http://localhost/api/books");
+
+    // Verifica si la respuesta es exitosa (código 2xx)
+    if (!res.ok) {
+      throw new Error(`Failed to fetch books: ${res.statusText}`);
+    }
+
+    return await res.json();
+  } catch (error) {
+    // Maneja cualquier error que ocurra durante la solicitud o en la transformación de la respuesta
+    console.error("Error fetching books:", error);
+    throw error; // Lanza el error nuevamente para que pueda ser manejado en el lugar donde se llama la función
+  }
+}
+
+export const deleteBookAdmin = async (bookId: string, token: string) => {
+  try {
+    const response = await fetch(`http://localhost/api/admin/books/${bookId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete the book");
+    }
+  } catch (error) {
+    throw new Error("Error deleting the book");
+  }
+};
+
+export async function fetchUsers(token: string) {
+  try {
+    const response = await fetch(`http://localhost/api/admin/users`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener usuarios: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data; // Asume que el API devuelve un array de usuarios
+  } catch (error) {
+    console.error("Error en fetchUsers:", error);
+    throw error;
+  }
+}
+
+export const updateUserAdmin = async (
+  id: string,
+  updatedUser: Partial<User>,
+  token: string
+) => {
+  try {
+    const headers = new Headers();
+    headers.append("Authorization", `Bearer ${token}`);
+    headers.append("Content-Type", "application/json"); // JSON para los datos del usuario
+
+    console.log("Sending the following data:", updatedUser);
+
+    // Enviar los datos del usuario en formato JSON
+    const response = await fetch(`http://localhost/api/admin/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(updatedUser), // Datos del usuario en JSON
+      headers: headers,
+    });
+
+    console.log("Server response:", response);
+
+    if (response.ok) {
+      const updatedUserData = await response.json();
+      console.log("Updated User Data:", updatedUserData);
+      return updatedUserData;
+    } else {
+      const errorData = await response.json();
+      console.error("Error response:", errorData);
+      throw new Error(errorData.message || "Error updating profile");
+    }
+  } catch (error) {
+    console.error("Error updating user:", error);
+    throw new Error(error.message || "Failed to update user.");
+  }
+};
+
+export const deleteUserAdmin = async (userId: string, token: string) => {
+  try {
+    const response = await fetch(`http://localhost/api/admin/users/${userId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete the user");
+    }
+  } catch (error) {
+    throw new Error("Error deleting the user");
+  }
+};
+
+export async function fetchComments(token: string) {
+  try {
+    const response = await fetch("http://localhost/api/comments", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al obtener los comentarios");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error en fetchComments:", error);
+    return { error: "No se pudieron cargar los comentarios." };
+  }
+}
+
+export const deleteCommentAdmin = async (commentId: string, token: string) => {
+  try {
+    const response = await fetch(
+      `http://localhost/api/admin/comments/${commentId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log(response);
+
+    if (!response.ok) {
+      throw new Error("Failed to delete the comment");
+    }
+  } catch (error) {
+    throw new Error("Error deleting the comment");
+  }
+};
+
+export async function fetchReviews(token: string) {
+  const response = await fetch("http://localhost/api/reviews", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener las reseñas");
+  }
+
+  return response.json();
+}
+
+export const deleteReviewAdmin = async (reviewId: string, token: string) => {
+  try {
+    const response = await fetch(
+      `http://localhost/api/admin/reviews/${reviewId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log(response);
+
+    if (!response.ok) {
+      throw new Error("Failed to delete the review");
+    }
+  } catch (error) {
+    throw new Error("Error deleting the review");
+  }
+};
+
+export async function fetchReplies(token: string) {
+  const response = await fetch("http://localhost/api/responses", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener las respuestas");
+  }
+
+  return response.json();
+}
+
+export const deleteReplyAdmin = async (replyId: string, token: string) => {
+  try {
+    const response = await fetch(
+      `http://localhost/api/responses/${replyId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log(response);
+
+    if (!response.ok) {
+      throw new Error("Failed to delete the response");
+    }
+  } catch (error) {
+    throw new Error("Error deleting the response");
+  }
+};

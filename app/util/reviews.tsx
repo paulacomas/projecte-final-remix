@@ -1,18 +1,17 @@
 import { addReview, deleteReview, updateReview } from "~/data/data";
 import { Review } from "../types";
 export const handleAddReview = async (
-  event: React.FormEvent<HTMLFormElement>,
+  formData: FormData,
   bookId: string,
   setBook: React.Dispatch<React.SetStateAction<BookDetails | null>>,
   setError: React.Dispatch<React.SetStateAction<string | null>>,
   setIsReviewModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  event.preventDefault();
   const token = localStorage.getItem("token");
-  const formData = new FormData(event.currentTarget);
-  const reviewContent = formData.get("comment") as string;
-  const reviewRating = Number(formData.get("score"));
+  const reviewContent = formData.get("content") as string;
+  const reviewRating = Number(formData.get("rating"));
 
+  console.log(reviewRating);
   if (!reviewContent || reviewRating < 1 || reviewRating > 5) {
     setError("Invalid review content or rating.");
     return;
@@ -49,19 +48,17 @@ export const handleAddReview = async (
 };
 
 export const handleEditReviewSubmit = async (
-  event: React.FormEvent<HTMLFormElement>,
+  formData: FormData,
   editReview: Review | null,
   setBook: React.Dispatch<React.SetStateAction<BookDetails | null>>,
   setError: React.Dispatch<React.SetStateAction<string | null>>,
   setIsReviewModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  event.preventDefault();
   const token = localStorage.getItem("token");
   if (!token || !editReview) return;
 
-  const formData = new FormData(event.currentTarget);
-  const updatedContent = formData.get("comment") as string;
-  const updatedRating = Number(formData.get("score"));
+  const updatedContent = formData.get("content") as string;
+  const updatedRating = Number(formData.get("rating"));
 
   const reviewData = { content: updatedContent, rating: updatedRating };
 

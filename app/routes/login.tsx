@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { Form } from "@remix-run/react";
 import { useLocation } from "@remix-run/react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const message = new URLSearchParams(location.search).get("message");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,8 +33,11 @@ export default function Login() {
       const data = await response.json();
       localStorage.setItem("token", data.token);
 
-      // Redirigir después de iniciar sesión correctamente
-      window.location.href = "/";
+      if (data.user.rol === "admin") {
+        navigate("/admin/books"); // Redirigir a admin/books si es "user"
+      } else {
+        navigate("/"); // Redirigir a la página principal para otros roles
+      }
     } catch (err: any) {
       // Mostrar un mensaje de error más detallado
       setError(err.message || "An error occurred during login");

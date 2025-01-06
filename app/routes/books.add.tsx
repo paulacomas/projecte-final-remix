@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import Layout from "../components/Layout";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate
+import { useNavigate } from "react-router-dom";
 import { useNotifications } from "~/contexts/NotificationContext";
+import {
+  validateTitle,
+  validateDescription,
+  validateAuthor,
+  validateGender,
+  validateReview,
+} from "../util/validations"; // Importar las funciones de validación
 
 export default function PublishBookPage() {
   const [formData, setFormData] = useState({
@@ -15,7 +22,7 @@ export default function PublishBookPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const navigate = useNavigate(); // Instanciar useNavigate
+  const navigate = useNavigate();
   const { addNotification } = useNotifications();
 
   const handleChange = (
@@ -40,6 +47,29 @@ export default function PublishBookPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const titleError = validateTitle(formData.title);
+    const descriptionError = validateDescription(formData.description);
+    const authorError = validateAuthor(formData.author);
+    const genderError = validateGender(formData.gender);
+    const reviewError = validateReview(formData.review);
+
+    if (
+      titleError ||
+      descriptionError ||
+      authorError ||
+      genderError ||
+      reviewError
+    ) {
+      setError(
+        titleError ||
+          descriptionError ||
+          authorError ||
+          genderError ||
+          reviewError
+      );
+      return;
+    }
+
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -52,7 +82,6 @@ export default function PublishBookPage() {
       Object.entries(formData).forEach(([key, value]) => {
         formDataToSend.append(key, value as string | Blob);
       });
-      console.log(formDataToSend);
 
       const response = await fetch("http://localhost/api/books", {
         method: "POST",
@@ -66,12 +95,11 @@ export default function PublishBookPage() {
         throw new Error("Failed to publish the book");
       }
 
-      const data = await response.json(); // Suponiendo que la respuesta contenga los datos del libro creado.
+      const data = await response.json();
       setSuccessMessage("Book published successfully!");
       addNotification("Book published successfully!", "success");
 
-      // Redirigir a la página del libro con su ID
-      navigate(`/books/details/${data.data.id}`); // Asegúrate de que el ID del libro se pase correctamente en la respuesta
+      navigate(`/books/details/${data.data.id}`); // Redirigir al detalle del libro
 
       setFormData({
         title: "",
@@ -115,7 +143,6 @@ export default function PublishBookPage() {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              required
               maxLength={255}
               className="w-full h-12 border-gray-300 rounded-lg shadow-sm"
             />
@@ -183,7 +210,6 @@ export default function PublishBookPage() {
               <option value="Non-Fiction">Non-Fiction</option>
               <option value="Science">Science</option>
               <option value="Fantasy">Fantasy</option>
-              {/* Add more options as needed */}
             </select>
           </div>
           <div className="mb-4">

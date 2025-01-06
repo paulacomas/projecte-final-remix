@@ -113,87 +113,93 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
 
   return (
     <main className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Books List</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {books.map((book) => (
-          <div
-            key={book.id}
-            className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg"
-          >
-            <img
-              src={book.image_book}
-              alt={book.title}
-              className="h-48 w-full object-cover rounded-md mb-4"
-            />
-            <h3 className="text-xl font-medium">{book.title}</h3>
-            <p className="text-sm text-gray-600">{book.author}</p>
-            <p className="text-sm text-gray-500">{book.gender}</p>
+      <h1 className="text-2xl font-bold mb-6 pl-6">Books List</h1>
 
-            {book.user && (
-              <p className="mt-2 text-sm text-gray-700">
-                Published by{" "}
-                <Link
-                  to={`/profile/${book.user.id}`}
-                  className="text-blue-500 hover:underline"
-                >
-                  {book.user.name}
-                </Link>
-              </p>
-            )}
+      {/* Verificar si hay libros */}
+      {books && books.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+          {books.map((book) => (
+            <div
+              key={book.id}
+              className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg"
+            >
+              <img
+                src={book.image_book}
+                alt={book.title}
+                className="h-48 w-full object-cover rounded-md mb-4"
+              />
+              <h3 className="text-xl font-medium">{book.title}</h3>
+              <p className="text-sm text-gray-600">{book.author}</p>
+              <p className="text-sm text-gray-500">{book.gender}</p>
 
-            <div className="mt-4 flex justify-between">
-              <Link
-                to={`/books/details/${book.id}`}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-              >
-                View Details
-              </Link>
-              {currentUserId === book.user_id && (
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditClick(book)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              {book.user && (
+                <p className="mt-2 text-sm text-gray-700">
+                  Published by{" "}
+                  <Link
+                    to={`/profile/${book.user.id}`}
+                    className="text-blue-500 hover:underline"
                   >
-                    Edit
-                  </button>
-                  <Form method="POST" action={`/books/${book.id}`}>
-                    <input type="hidden" name="action" value="delete" />
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </Form>
-                </div>
+                    {book.user.name}
+                  </Link>
+                </p>
               )}
-              {/* Icono de guardar */}
-              <button
-                onClick={() => toggleSaveBook(book.id)}
-                className={`px-3 py-2 rounded-lg ${
-                  savedBooks.has(book.id)
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-300 text-gray-700"
-                }`}
-                title={savedBooks.has(book.id) ? "Saved" : "Save"}
-              >
-                {savedBooks.has(book.id) ? <FaBookmark /> : <FaRegBookmark />}
-              </button>
-            </div>
-          </div>
-        ))}
 
-        {isModalOpen && selectedBook && (
-          <Modal onClose={handleModalClose}>
-            <EditBookForm
-              book={selectedBook}
-              onClose={handleModalClose}
-              onCancel={handleModalClose}
-              onSubmit={handleFormSubmit}
-            />
-          </Modal>
-        )}
-      </div>
+              <div className="mt-4 flex justify-between">
+                <Link
+                  to={`/books/details/${book.id}`}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                >
+                  View Details
+                </Link>
+                {currentUserId === book.user_id && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditClick(book)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <Form method="POST" action={`/books/details/${book.id}`}>
+                      <input type="hidden" name="action" value="delete" />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                    </Form>
+                  </div>
+                )}
+                {/* Icono de guardar */}
+                <button
+                  onClick={() => toggleSaveBook(book.id)}
+                  className={`px-3 py-2 rounded-lg ${
+                    savedBooks.has(book.id)
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-700"
+                  }`}
+                  title={savedBooks.has(book.id) ? "Saved" : "Save"}
+                >
+                  {savedBooks.has(book.id) ? <FaBookmark /> : <FaRegBookmark />}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p>No hay libros aún.</p> // Mensaje si no hay libros
+      )}
+
+      {isModalOpen && selectedBook && (
+        <Modal onClose={handleModalClose}>
+          <EditBookForm
+            book={selectedBook}
+            onClose={handleModalClose}
+            onCancel={handleModalClose}
+            onSubmit={handleFormSubmit}
+          />
+        </Modal>
+      )}
     </main>
   );
 }

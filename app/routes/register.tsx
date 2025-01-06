@@ -1,7 +1,17 @@
-import { Form } from "@remix-run/react";
 import React, { useState } from "react";
+import { Form } from "@remix-run/react";
 import { useNavigate } from "react-router-dom";
 import Layout from "~/components/Layout";
+import {
+  validateName,
+  validateSurname,
+  validateEmail,
+  validatePassword,
+  validatePasswordConfirmation,
+  validateAge,
+  validateSchoolYear,
+  validateProfileImage,
+} from "~/util/validations"; // Importar las funciones de validación
 
 type FormData = {
   name: string;
@@ -39,8 +49,38 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.password !== formData.password_confirmation) {
-      setError("Passwords do not match");
+    const nameError = validateName(formData.name);
+    const surnameError = validateSurname(formData.surname);
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const passwordConfirmationError = validatePasswordConfirmation(
+      formData.password,
+      formData.password_confirmation
+    );
+    const ageError = validateAge(formData.age);
+    const schoolYearError = validateSchoolYear(formData.school_year);
+    const profileImageError = validateProfileImage(formData.image_profile);
+
+    if (
+      nameError ||
+      surnameError ||
+      emailError ||
+      passwordError ||
+      passwordConfirmationError ||
+      ageError ||
+      schoolYearError ||
+      profileImageError
+    ) {
+      setError(
+        nameError ||
+          surnameError ||
+          emailError ||
+          passwordError ||
+          passwordConfirmationError ||
+          ageError ||
+          schoolYearError ||
+          profileImageError
+      );
       return;
     }
 
@@ -103,7 +143,6 @@ export default function RegisterPage() {
                 name="surname"
                 value={formData.surname}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
@@ -118,7 +157,6 @@ export default function RegisterPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
@@ -133,7 +171,6 @@ export default function RegisterPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
@@ -148,7 +185,6 @@ export default function RegisterPage() {
                 name="password_confirmation"
                 value={formData.password_confirmation}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
@@ -163,7 +199,6 @@ export default function RegisterPage() {
                 name="age"
                 value={formData.age}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
@@ -178,7 +213,6 @@ export default function RegisterPage() {
                 name="school_year"
                 value={formData.school_year}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>

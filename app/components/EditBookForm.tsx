@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+import {
+  validateTitle,
+  validateAuthor,
+  validateDescription,
+  validateGender,
+  validateReview,
+} from "../util/validations"; // Asegúrate de que la ruta sea correcta
 
 interface EditBookFormProps {
   book: {
@@ -36,10 +43,54 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
   const [review, setReview] = useState(book.review || 1);
   const [gender, setGender] = useState(book.gender);
   const [imageBook, setImageBook] = useState<File | null>(null);
+  const [error, setError] = useState<string>("");
+
+  // Validar el formulario
+  const validateForm = (): boolean => {
+    // Validamos los campos utilizando las funciones de validación
+    const titleError = validateTitle(title);
+    if (titleError) {
+      setError(titleError);
+      return false;
+    }
+
+    const authorError = validateAuthor(author);
+    if (authorError) {
+      setError(authorError);
+      return false;
+    }
+
+    const descriptionError = validateDescription(description);
+    if (descriptionError) {
+      setError(descriptionError);
+      return false;
+    }
+
+    const genderError = validateGender(gender);
+    if (genderError) {
+      setError(genderError);
+      return false;
+    }
+
+    const reviewError = validateReview(review);
+    if (reviewError) {
+      setError(reviewError);
+      return false;
+    }
+
+    setError(""); // Limpiar el mensaje de error si todo está bien
+    return true;
+  };
 
   // Cambiar handleSubmit para llamar a onSubmit con los datos del libro
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Validar antes de enviar
+    const isValid = validateForm();
+    if (!isValid) return;
+
+    // Si las validaciones pasan, enviamos el formulario
     onSubmit({
       id: book.id,
       title,
@@ -73,6 +124,7 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
     <div className="bg-white p-6 rounded-lg shadow-md mb-8">
       <h1 className="text-3xl font-semibold mb-4">Editar libro</h1>
       <form onSubmit={handleSubmit}>
+        {/* Título */}
         <div>
           <label
             htmlFor="title"
@@ -86,10 +138,11 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
             name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            required
             className="mt-1 p-2 w-full border rounded"
           />
         </div>
+
+        {/* Autor */}
         <div className="mt-4">
           <label
             htmlFor="author"
@@ -103,10 +156,11 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
             name="author"
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
-            required
             className="mt-1 p-2 w-full border rounded"
           />
         </div>
+
+        {/* Descripción */}
         <div className="mt-4">
           <label
             htmlFor="description"
@@ -119,10 +173,11 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            required
             className="mt-1 p-2 w-full border rounded"
           ></textarea>
         </div>
+
+        {/* Opinión */}
         <div className="mt-4">
           <label
             htmlFor="opinion"
@@ -138,6 +193,8 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
             className="mt-1 p-2 w-full border rounded"
           ></textarea>
         </div>
+
+        {/* Calificación */}
         <div className="mt-4">
           <label
             htmlFor="review"
@@ -156,6 +213,8 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
             className="mt-1 p-2 w-full border rounded"
           />
         </div>
+
+        {/* Género */}
         <div className="mt-4">
           <label
             htmlFor="gender"
@@ -173,6 +232,8 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
             className="mt-1 p-2 w-full border rounded"
           />
         </div>
+
+        {/* Imagen del libro */}
         <div className="mt-4">
           <label
             htmlFor="image_book"
@@ -188,6 +249,11 @@ const EditBookForm: React.FC<EditBookFormProps> = ({
             className="mt-1 p-2 w-full border rounded"
           />
         </div>
+
+        {/* Mensajes de error */}
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+        {/* Botones */}
         <div className="mt-4 flex justify-between">
           <button
             type="button"

@@ -1,4 +1,11 @@
 import { useState } from "react";
+import {
+  validateName,
+  validateSurname,
+  validateEmail,
+  validateAge,
+  validateSchoolYear,
+} from "../util/validations"; // Asegúrate de que la ruta sea correcta
 
 interface User {
   id: string;
@@ -31,6 +38,7 @@ export default function ProfileEditForm({
   });
 
   const [image, setImage] = useState<File | null>(null); // For image upload
+  const [error, setError] = useState<string>("");
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -52,6 +60,26 @@ export default function ProfileEditForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validar los campos antes de enviar
+    const nameError = validateName(formData.name || "");
+    const surnameError = validateSurname(formData.surname || "");
+    const emailError = validateEmail(formData.email || "");
+    const ageError = validateAge(formData.age || "");
+    const schoolYearError = validateSchoolYear(formData.school_year || "");
+
+    if (
+      nameError ||
+      surnameError ||
+      emailError ||
+      ageError ||
+      schoolYearError
+    ) {
+      setError(
+        nameError || surnameError || emailError || ageError || schoolYearError
+      );
+      return;
+    }
+
     // Prepare the user data as JSON (without using FormData)
     const updatedUser = {
       name: formData.name,
@@ -59,13 +87,11 @@ export default function ProfileEditForm({
       email: formData.email,
       age: formData.age,
       school_year: formData.school_year,
-      image_profile: formData.image_profile,
     };
 
     // If image is provided, include it in the request
     if (image) {
-      // Optionally, handle image upload here or through another endpoint
-      updatedUser["image_profile"] = image;
+      updatedUser["profile_image"] = image;
     }
 
     // Send the data as JSON
@@ -76,6 +102,8 @@ export default function ProfileEditForm({
     <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg mx-auto">
       <h3 className="text-2xl font-semibold mb-6">Edit Profile</h3>
       <form onSubmit={handleSubmit}>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700">
             Name
@@ -86,7 +114,6 @@ export default function ProfileEditForm({
             value={formData.name || ""}
             onChange={handleInputChange}
             className="mt-1 p-2 border border-gray-300 rounded-md w-full"
-            required
           />
         </div>
 
