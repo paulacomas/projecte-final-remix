@@ -52,6 +52,8 @@ export const deleteBook = async (bookId: string, token: string) => {
     if (!response.ok) {
       throw new Error("Failed to delete the book");
     }
+
+    return response;
   } catch (error) {
     throw new Error("Error deleting the book");
   }
@@ -129,7 +131,7 @@ export const addReview = async (
     throw new Error("Failed to add review");
   }
 
-  return await response.json();
+  return response;
 };
 
 export const deleteReview = async (reviewId: string, token: string) => {
@@ -144,6 +146,8 @@ export const deleteReview = async (reviewId: string, token: string) => {
     if (!response.ok) {
       throw new Error("Failed to delete the book");
     }
+
+    return response;
   } catch (error) {
     throw new Error("Error deleting the book");
   }
@@ -200,7 +204,7 @@ export const addComment = async (
     throw new Error("Failed to add review");
   }
 
-  return await response.json();
+  return response;
 };
 
 export const deleteComment = async (commentId: string, token: string) => {
@@ -215,6 +219,7 @@ export const deleteComment = async (commentId: string, token: string) => {
     if (!response.ok) {
       throw new Error("Failed to delete the book");
     }
+    return response;
   } catch (error) {
     throw new Error("Error deleting the book");
   }
@@ -269,7 +274,7 @@ export const addReply = async (
     throw new Error("Failed to add review");
   }
 
-  return await responseFetch.json();
+  return responseFetch;
 };
 
 export const updateReplay = async (
@@ -365,7 +370,7 @@ export const updateUser = async (
     if (response.ok) {
       const updatedUserData = await response.json();
       console.log("Updated User Data:", updatedUserData);
-      return updatedUserData;
+      return response;
     } else {
       const errorData = await response.json();
       console.error("Error response:", errorData);
@@ -395,9 +400,7 @@ export const deleteUser = async (token: string) => {
       throw new Error("Failed to delete the account.");
     }
 
-    // Attempt to parse the JSON response
-    const data = JSON.parse(text);
-    return data;
+    return response;
   } catch (error) {
     console.error("Error in deleteUser:", error);
     throw new Error(error.message || "Failed to delete user.");
@@ -473,6 +476,8 @@ export const deleteBookAdmin = async (bookId: string, token: string) => {
     if (!response.ok) {
       throw new Error("Failed to delete the book");
     }
+
+    return response;
   } catch (error) {
     throw new Error("Error deleting the book");
   }
@@ -523,7 +528,7 @@ export const updateUserAdmin = async (
     if (response.ok) {
       const updatedUserData = await response.json();
       console.log("Updated User Data:", updatedUserData);
-      return updatedUserData;
+      return response;
     } else {
       const errorData = await response.json();
       console.error("Error response:", errorData);
@@ -547,6 +552,7 @@ export const deleteUserAdmin = async (userId: string, token: string) => {
     if (!response.ok) {
       throw new Error("Failed to delete the user");
     }
+    return response;
   } catch (error) {
     throw new Error("Error deleting the user");
   }
@@ -585,11 +591,12 @@ export const deleteCommentAdmin = async (commentId: string, token: string) => {
         },
       }
     );
-    console.log(response);
 
     if (!response.ok) {
       throw new Error("Failed to delete the comment");
     }
+
+    return response;
   } catch (error) {
     throw new Error("Error deleting the comment");
   }
@@ -625,6 +632,8 @@ export const deleteReviewAdmin = async (reviewId: string, token: string) => {
     if (!response.ok) {
       throw new Error("Failed to delete the review");
     }
+
+    return response;
   } catch (error) {
     throw new Error("Error deleting the review");
   }
@@ -646,20 +655,19 @@ export async function fetchReplies(token: string) {
 
 export const deleteReplyAdmin = async (replyId: string, token: string) => {
   try {
-    const response = await fetch(
-      `http://localhost/api/responses/${replyId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`http://localhost/api/responses/${replyId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log(response);
 
     if (!response.ok) {
       throw new Error("Failed to delete the response");
     }
+
+    return response;
   } catch (error) {
     throw new Error("Error deleting the response");
   }

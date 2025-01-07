@@ -1,4 +1,4 @@
-import { Form } from "@remix-run/react";
+import { Form, Link } from "@remix-run/react";
 
 interface CommentFormProps {
   comment?: {
@@ -30,12 +30,12 @@ export default function CommentForm({ comment }: CommentFormProps) {
         >
           Guardar
         </button>
-        <a
-          href="/admin/comments"
+        <Link
+          to=".."
           className="py-2 px-4 bg-gray-300 text-black rounded hover:bg-gray-400"
         >
           Cancelar
-        </a>
+        </Link>
       </div>
     </Form>
   );

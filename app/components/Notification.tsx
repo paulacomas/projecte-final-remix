@@ -1,27 +1,28 @@
 import React from "react";
-import { useNotifications } from "../contexts/NotificationContext";
 
-const Notification: React.FC = () => {
-  const { notifications } = useNotifications();
+export default function Notification({ successMessage, errorMessage }) {
+  if (!successMessage && !errorMessage) return null;
 
   return (
-    <div className="fixed top-0 left-1/2 transform -translate-x-1/2 p-6 space-y-4 z-50">
-      {notifications.map((notif) => (
+    <div className="my-4">
+      {successMessage && (
         <div
-          key={notif.id}
-          className={`px-4 py-2 rounded-lg text-white ${
-            notif.type === "success"
-              ? "bg-green-500"
-              : notif.type === "error"
-              ? "bg-red-500"
-              : "bg-blue-500"
-          }`}
+          className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative p-6 m-6"
+          role="alert"
         >
-          {notif.message}
+          <strong className="font-bold">¡Éxito! </strong>
+          <span className="block sm:inline">{successMessage}</span>
         </div>
-      ))}
+      )}
+      {errorMessage && (
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-2 p-6 m-6"
+          role="alert"
+        >
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{errorMessage}</span>
+        </div>
+      )}
     </div>
   );
-};
-
-export default Notification;
+}

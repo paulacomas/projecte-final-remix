@@ -1,24 +1,26 @@
 // routes/admin/books/delete.$id.tsx
 import { ActionFunction, json, redirect } from "@remix-run/node";
-import { deleteCommentAdmin } from "~/data/data"; // Función para eliminar el libro
+import { deleteCommentAdmin, fetchCurrentUser } from "~/data/data"; // Función para eliminar el libro
 import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const action: ActionFunction = async ({ request, params }) => {
   const { id } = params;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  const user = await fetchCurrentUser(token);
+  console.log(user);
+  if (user.rol !== "admin") {
+    throw new Error("No tienes permiso");
+  }
 
   // Llamar a la función para eliminar el libro de la base de datos
-  await deleteCommentAdmin(id, token);
+  const response = await deleteCommentAdmin(id, token);
 
-  // Redirigir con un mensaje flash
-  const flashMessage = "Comment eliminado con éxito.";
-  const cookie = await flashMessageCookie.serialize(flashMessage);
+  if (!response.ok) {
+    const errorUrl = `/admin/comments?error=Error%20al%20eliminar%20el%20comentario`;
+    return redirect(errorUrl);
+  }
 
-  // Redirigir con el mensaje flash
-  return redirect("/admin/comments", {
-    headers: {
-      "Set-Cookie": cookie,
-    },
-  });
+  const successUrl = `/admin/comments?success=Comentario%20eliminado%20correctamente`;
+  return redirect(successUrl);
 };

@@ -1,6 +1,6 @@
 // routes/admin/books/delete.$id.tsx
 import { ActionFunction, json, redirect } from "@remix-run/node";
-import { deleteBookAdmin } from "~/data/data"; // Función para eliminar el libro
+import { deleteBookAdmin, fetchCurrentUser } from "~/data/data"; // Función para eliminar el libro
 import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -8,17 +8,20 @@ export const action: ActionFunction = async ({ request, params }) => {
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
 
+  const user = await fetchCurrentUser(token);
+  console.log(user);
+  if (user.rol !== "admin") {
+    throw new Error("No tienes permiso");
+  }
+
   // Llamar a la función para eliminar el libro de la base de datos
-  await deleteBookAdmin(id, token);
+  const response = await deleteBookAdmin(id, token);
 
-  // Redirigir con un mensaje flash
-  const flashMessage = "Libro eliminado con éxito.";
-  const cookie = await flashMessageCookie.serialize(flashMessage);
+  if (!response.ok) {
+    const errorUrl = `/admin/books?error=Error%20al%eliminar%20el%libro`;
+    return redirect(errorUrl);
+  }
 
-  // Redirigir con el mensaje flash
-  return redirect("/admin/books", {
-    headers: {
-      "Set-Cookie": cookie,
-    },
-  });
+  const successUrl = `/admin/books?success=Libro%20eliminado%20correctamente`;
+  return redirect(successUrl);
 };

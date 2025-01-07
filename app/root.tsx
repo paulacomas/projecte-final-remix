@@ -67,7 +67,7 @@ export function ErrorBoundary() {
         <h1 className="mb-4 text-4xl font-bold">{title}</h1>
         <p className="mb-6 text-lg">{message}</p>
         <Link
-          to="/"
+          to=".."
           className="rounded bg-white px-4 py-2 font-medium text-indigo-600 hover:bg-gray-200"
         >
           Back to safety

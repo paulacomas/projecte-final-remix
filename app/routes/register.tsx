@@ -93,6 +93,7 @@ export default function RegisterPage() {
       const res = await fetch("http://localhost/api/register", {
         method: "POST",
         body: formDataToSend,
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -100,7 +101,7 @@ export default function RegisterPage() {
       }
 
       const data = await res.json();
-      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("token", data.token);
       navigate("/");
     } catch (error) {
       setError("Error registering user");

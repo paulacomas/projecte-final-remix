@@ -3,12 +3,21 @@ import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import Modal from "~/components/Modal";
 import UserForm from "~/components/UserForm";
-import { fetchUserById, updateUser } from "~/data/data";
+import {
+  fetchCurrentUser,
+  fetchUserById,
+  updateUser,
+  updateUserAdmin,
+} from "~/data/data";
 import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  const userCurrent = await fetchCurrentUser(token);
+  if (userCurrent.rol !== "admin") {
+    throw new Error("No tienes permiso");
+  }
   const user = await fetchUserById(params.id, token);
   if (!user) throw new Error("Usuario no encontrado");
   return user;
@@ -28,16 +37,15 @@ export const action: ActionFunction = async ({ request, params }) => {
     image_profile: formData.get("image_profile"),
   };
 
-  await updateUser(params.id, updatedUser, token);
-  const flashMessage = "user editado con éxito.";
-  const cookie = await flashMessageCookie.serialize(flashMessage);
+  const response = await updateUserAdmin(params.id, updatedUser, token);
 
-  // Redirigir con el mensaje flash
-  return redirect("/admin/users", {
-    headers: {
-      "Set-Cookie": cookie,
-    },
-  });
+  if (!response.ok) {
+    const errorUrl = `/admin/users?error=Error%20al%20actualizar%20el%20usuario`;
+    return redirect(errorUrl);
+  }
+
+  const successUrl = `/admin/users?success=Usuario%20editado%20correctamente`;
+  return redirect(successUrl);
 };
 
 export default function EditUser() {

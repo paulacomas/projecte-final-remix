@@ -17,11 +17,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
-  const user = await fetchCurrentUser(token);
-  console.log(user);
-  if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
-  }
 
   const response = await fetch(`http://localhost/api/books/${id}`, {
     method: "GET",
@@ -35,6 +30,14 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 
   const book = await response.json();
+
+  const user = await fetchCurrentUser(token);
+  console.log(user);
+
+  if (book.data.user_id !== user.id) {
+    throw new Error("No tienes permiso para editar este libro");
+  }
+
   return book.data;
 };
 
@@ -69,7 +72,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     image_book, // Puede ser un string de la imagen o un File si fue subida
   };
 
-  const response = await fetch(`http://localhost/api/admin/books/${id}`, {
+  const response = await fetch(`http://localhost/api/books/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -79,11 +82,15 @@ export const action: ActionFunction = async ({ request, params }) => {
   });
 
   if (!response.ok) {
-    const errorUrl = `/admin/books?error=Error%20al%20actualizar%20el%20libro`;
+    return json({ error: "Error updating book" }, { status: 500 });
+  }
+
+  if (!response.ok) {
+    const errorUrl = `/books/details/${id}?error=Error%20al%20editar%20el%20libro`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/admin/books?success=libro%20editado%20correctamente`;
+  const successUrl = `/books/details/${id}?success=Libro%20editado%20correctamente`;
   return redirect(successUrl);
 };
 

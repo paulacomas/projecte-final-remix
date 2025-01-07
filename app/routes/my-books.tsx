@@ -3,12 +3,14 @@ import {
   redirect,
   LoaderFunction,
   useLoaderData,
+  useSearchParams,
 } from "@remix-run/react";
 import Layout from "../components/Layout";
 import BooksList from "~/components/Books";
 import { fetchBooksForUser, fetchCurrentUser } from "~/data/data"; // Assuming fetchCurrentUser is available
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Navigation from "../components/Layout";
+import Notification from "~/components/Notification";
 
 interface Book {
   id: string;
@@ -53,6 +55,10 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function MyBooks() {
   const { books, userId } = useLoaderData<LoaderData>(); // Get both books and userId from the loader
+  const [searchParams] = useSearchParams();
+
+  const successMessage = searchParams.get("success");
+  const errorMessage = searchParams.get("error");
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -61,6 +67,10 @@ export default function MyBooks() {
           <Navigation />
         </nav>
       </header>
+      <Notification
+        successMessage={successMessage}
+        errorMessage={errorMessage}
+      />
       <div>
         <BooksList books={books} currentUserId={userId} />{" "}
       </div>

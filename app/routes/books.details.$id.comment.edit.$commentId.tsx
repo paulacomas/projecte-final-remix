@@ -3,18 +3,20 @@ import { useLoaderData } from "@remix-run/react";
 import CommentEditForm from "~/components/CommentForm";
 import Modal from "~/components/Modal";
 import { fetchComments, fetchCurrentUser } from "~/data/data";
-import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  const commentId = params.id;
+  const commentId = params.commentId;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
   const comments = await fetchComments(token);
   const comment = comments.data.find((c: any) => c.id === Number(commentId));
+
   const user = await fetchCurrentUser(token);
   console.log(user);
-  if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
+
+  if (comment.user_id !== user.id) {
+    throw new Error("No tienes permiso para editar este comentario");
   }
 
   if (!comment) {
@@ -25,7 +27,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
-  const commentId = params.id;
+  const commentId = params.commentId;
+  const bookId = params.id;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
 
@@ -42,11 +45,11 @@ export const action: ActionFunction = async ({ request, params }) => {
   });
 
   if (!response.ok) {
-    const errorUrl = `/admin/comments?error=Error%20al%20actualizar%20el%20comentario`;
+    const errorUrl = `/books/details/${bookId}?error=Error%20al%20editar%20el%20comentario`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/admin/comments?success=Comentario%20editado%20correctamente`;
+  const successUrl = `/books/details/${bookId}?success=Comentario%20editado%20correctamente`;
   return redirect(successUrl);
 };
 

@@ -1,108 +1,53 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "@remix-run/react";
+import { useState, useEffect } from "react";
 import {
-  deleteUser,
-  fetchCurrentUser,
-  fetchUserById,
-  updateUser,
-} from "../data/data";
-import Layout from "../components/Layout";
-import ProfileEditForm from "~/components/ProfileEditForm";
-import { unstable_createMemoryUploadHandler } from "@remix-run/node";
+  useParams,
+  Link,
+  useNavigate,
+  json,
+  useLoaderData,
+  Outlet,
+  Form,
+  useSearchParams,
+} from "@remix-run/react";
+import { fetchUserById, fetchCurrentUser } from "~/data/data";
+import Layout from "~/components/Layout";
+import { LoaderFunction } from "@remix-run/node";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import Notification from "~/components/Notification";
 
-interface User {
-  id: string;
-  name: string;
-  surname: string;
-  email: string;
-  bio?: string;
-  image_profile?: string;
-  books?: Array<{
-    id: string;
-    title: string;
-    author: string;
-    gender: string;
-    image_book: string;
-    user_id: string;
-  }>;
-}
+export const loader: LoaderFunction = async ({ params, request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!token) {
+    return json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userData = await fetchUserById(params.id, token); // Cargar datos del usuario
+  const currentUser = await fetchCurrentUser(token); // Obtener datos del usuario actual
+
+  return json({ userData, currentUser });
+};
 
 export default function ProfilePage() {
   const { id } = useParams();
-  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const { userData, currentUser } = useLoaderData();
+  const [searchParams] = useSearchParams();
+
+  const successMessage = searchParams.get("success");
+  const errorMessage = searchParams.get("error");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false); // Track the current logged-in user ID
 
-  // Fetch user data on component mount
   useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("No token found");
-        }
-        const userData = await fetchUserById(id, token);
-        const currentUser = await fetchCurrentUser(token); // Pass the user ID to the utility function
-        setUser(userData);
-        setCurrentUserId(currentUser.id); // Store current user ID
-      } catch (error) {
-        setError("Error fetching user data.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    setLoading(false);
+  }, []);
 
-    fetchUserData();
-  }, [id]);
-
-  const handleEditSubmit = async (updatedUser: Partial<User>) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No token found");
-      }
-
-      const updatedUserData = await updateUser(id, updatedUser, token);
-      setUser(updatedUserData.data);
-      console.log(updatedUserData.data);
-      setIsEditing(false); // Close the modal after updating
-    } catch (error) {
-      setError("Error updating profile.");
-    }
-  };
-  const handleDeleteAccount = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("No token found");
-      return;
-    }
-
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete your account?"
-    );
-    if (confirmDelete) {
-      try {
-        await deleteUser(token); // Llamamos a la función deleteUser
-        localStorage.removeItem("token");
-        alert("Account deleted successfully!");
-        window.location.href = "/"; // Redirigir a la página principal o login después de eliminar
-      } catch (error) {
-        setError("Error deleting account.");
-      }
-    }
-  };
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
-  if (!user) return <div>User not found.</div>;
-
-  // Check if the current user is the same as the profile being viewed
-  console.log(user.id, currentUserId);
-  const isCurrentUserProfile = currentUserId === user.id;
+  const isCurrentUserProfile = currentUser.id === userData.id;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -112,13 +57,17 @@ export default function ProfilePage() {
         </nav>
       </header>
       <main className="container mx-auto py-8 p-6">
+        <Notification
+          successMessage={successMessage}
+          errorMessage={errorMessage}
+        />
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-6 p-6">
             {/* Display user avatar if available */}
-            {user.image_profile ? (
+            {userData.image_profile ? (
               <img
-                src={`${user.image_profile}`} // Assuming profile image path
-                alt={`${user.name}'s Avatar`}
+                src={`${userData.image_profile}`} // Assuming profile image path
+                alt={`${userData.name}'s Avatar`}
                 className="h-24 w-24 rounded-full mr-4"
               />
             ) : (
@@ -127,22 +76,22 @@ export default function ProfilePage() {
 
             <div>
               <h2 className="text-3xl font-semibold">
-                {user.name} {user.surname}
+                {userData.name} {userData.surname}
               </h2>
-              <p className="text-lg text-gray-600">{user.email}</p>
-              <p className="text-sm text-gray-600">Age: {user.age}</p>
+              <p className="text-lg text-gray-600">{userData.email}</p>
+              <p className="text-sm text-gray-600">Age: {userData.age}</p>
               <p className="text-sm text-gray-600">
-                School Year: {user.school_year}
+                School Year: {userData.school_year}
               </p>
             </div>
           </div>
 
           {/* Display the books the user has published */}
-          {user.books && user.books.length > 0 && (
+          {userData.books && userData.books.length > 0 && (
             <div className="mt-8">
               <h3 className="text-2xl font-semibold mb-2">Books Published</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {user.books.map((book) => (
+                {userData.books.map((book) => (
                   <div
                     key={book.id}
                     className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg"
@@ -174,34 +123,34 @@ export default function ProfilePage() {
           {/* Display Edit Profile button if it's the current user's profile */}
           {isCurrentUserProfile && (
             <div className="mt-6">
-              <button
-                onClick={() => setIsEditing(true)}
+              <Link
+                to={`edit`}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 Edit Profile
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                className="ml-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              >
-                Delete Account
-              </button>
+              </Link>
+              <Form method="post" action={`delete`} className="inline">
+                <button
+                  type="submit"
+                  className="ml-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  onClick={(e) => {
+                    if (
+                      !window.confirm(
+                        "¿Estás seguro de que deseas eliminar esta cuenta?"
+                      )
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Delete Account
+                </button>
+              </Form>
             </div>
           )}
         </div>
       </main>
-
-      {isEditing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-10">
-          <div className="relative bg-white p-6 rounded-lg shadow-md w-full max-w-lg mx-auto">
-            <ProfileEditForm
-              user={user}
-              onSubmit={handleEditSubmit}
-              onClose={() => setIsEditing(false)}
-            />
-          </div>
-        </div>
-      )}
+      <Outlet />
     </div>
   );
 }

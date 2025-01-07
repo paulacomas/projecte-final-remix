@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
-import { Outlet, redirect, useLoaderData, useNavigate } from "@remix-run/react";
+import {
+  Outlet,
+  redirect,
+  useLoaderData,
+  useNavigate,
+  useSearchParams,
+} from "@remix-run/react";
 import BooksList from "../components/books"; // Asegúrate de importar correctamente el componente BooksList
 import BookFilters from "~/components/BookFilters";
 import Navigation from "~/components/Layout";
+import Notification from "~/components/Notification";
 
 export async function loader({ request }) {
   const url = new URL(request.url);
@@ -70,6 +77,10 @@ export default function Index() {
   const [title, setTitle] = useState("");
   const [user, setUser] = useState("");
   const [category, setCategory] = useState("");
+  const [searchParams] = useSearchParams();
+
+  const successMessage = searchParams.get("success");
+  const errorMessage = searchParams.get("error");
 
   const categories = ["Fiction", "Non-Fiction", "Science", "Art"]; // Esto puede venir de tu API si es necesario
 
@@ -141,7 +152,10 @@ export default function Index() {
           onCategoryChange={handleCategoryChange}
           onSearch={handleSearch}
         />
-
+        <Notification
+          successMessage={successMessage}
+          errorMessage={errorMessage}
+        />
         {/* Mostrar la lista de libros filtrados */}
         <BooksList books={books} />
 

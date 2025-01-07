@@ -70,44 +70,15 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
           updated.delete(bookId);
           return updated;
         });
+        navigate(".?success=Libro%20unsaved%20correctamente");
       } else {
         const response = await saveBook(bookId, token);
         console.log("Save response:", response); // Depuración
         setSavedBooks((prev) => new Set(prev).add(bookId));
+        navigate(".?success=Libro%20guardado%20correctamente");
       }
     } catch (error: any) {
       console.error("Error toggling save book:", error.message);
-    }
-  };
-
-  const handleEditClick = (book: Book) => {
-    setSelectedBook(book);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedBook(null);
-  };
-
-  const handleFormSubmit = async (updatedBook) => {
-    const token = localStorage.getItem("token");
-    try {
-      if (!updatedBook.id) {
-        console.error("No se encontró el ID del libro");
-        return;
-      }
-      const response = await updateBook(updatedBook.id, updatedBook, token);
-      console.log(response);
-
-      if (response) {
-        console.log("Libro actualizado correctamente");
-        handleModalClose();
-      } else {
-        console.error("Error al actualizar el libro");
-      }
-    } catch (error) {
-      console.error("Hubo un error al enviar los datos", error);
     }
   };
 
@@ -153,12 +124,12 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
                 </Link>
                 {currentUserId === book.user_id && (
                   <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditClick(book)}
+                    <Link
+                      to={`/books/details/${book.id}/edit`}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                     >
                       Edit
-                    </button>
+                    </Link>
                     <Form method="POST" action={`/books/details/${book.id}`}>
                       <input type="hidden" name="action" value="delete" />
                       <button
@@ -188,17 +159,6 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
         </div>
       ) : (
         <p>No hay libros aún.</p> // Mensaje si no hay libros
-      )}
-
-      {isModalOpen && selectedBook && (
-        <Modal onClose={handleModalClose}>
-          <EditBookForm
-            book={selectedBook}
-            onClose={handleModalClose}
-            onCancel={handleModalClose}
-            onSubmit={handleFormSubmit}
-          />
-        </Modal>
       )}
     </main>
   );

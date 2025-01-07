@@ -1,23 +1,25 @@
 import { LoaderFunction, json } from "@remix-run/node";
-import { Link, useLoaderData, Outlet } from "@remix-run/react";
+import { Link, useLoaderData, Outlet, useSearchParams } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import BooksTable from "~/components/BooksTable";
 import Navigation from "~/components/Layout";
-import { fetchBooks } from "~/data/data"; // Asume que tienes un servicio para obtener libros
-import { flashMessageCookie } from "~/helpers/cookies"; // Importar la cookie
+import Notification from "~/components/Notification";
+import { fetchBooks, fetchCurrentUser } from "~/data/data"; // Asume que tienes un servicio para obtener libros
+import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies"; // Importar la cookie
 
 // Loader para obtener los libros
 export const loader: LoaderFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const token = await getAuthTokenFromCookie(cookieHeader);
+  const user = await fetchCurrentUser(token);
+  console.log(user);
+  if (user.rol !== "admin") {
+    throw new Error("No tienes permiso");
+  }
   try {
     const books = await fetchBooks();
 
-    // Leer la cookie para obtener el mensaje flash
-    const cookieHeader = request.headers.get("Cookie");
-    const flashMessage = cookieHeader
-      ? await flashMessageCookie.parse(cookieHeader)
-      : null;
-
-    return json({ books: books.data, flashMessage });
+    return json({ books: books.data });
   } catch (error) {
     console.error("Error al obtener los libros:", error);
     return json({ error: "No se pudieron obtener los libros." });
@@ -25,25 +27,11 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function AdminBooks() {
-  const { books, error, flashMessage } = useLoaderData();
+  const { books, error } = useLoaderData();
+  const [searchParams] = useSearchParams();
 
-  // Usar un estado para controlar si mostrar el mensaje flash
-  const [showFlashMessage, setShowFlashMessage] = useState<boolean>(false);
-
-  // Manejar el efecto después de la carga
-  useEffect(() => {
-    if (flashMessage) {
-      setShowFlashMessage(true); // Mostrar el mensaje flash
-
-      // Establecer el temporizador para ocultarlo después de 3 segundos
-      const timer = setTimeout(() => {
-        setShowFlashMessage(false); // El mensaje se elimina después de 3 segundos
-      }, 3000);
-
-      // Limpiar el temporizador cuando el componente se desmonte
-      return () => clearTimeout(timer);
-    }
-  }, [flashMessage]); // Dependencia en `flashMessage` para ejecutar el efecto cuando cambie
+  const successMessage = searchParams.get("success");
+  const errorMessage = searchParams.get("error");
 
   if (error) {
     return <div className="p-4 text-red-500">{error}</div>;
@@ -67,12 +55,10 @@ export default function AdminBooks() {
         </Link>
       </div>
 
-      {/* Mostrar el mensaje flash si existe */}
-      {showFlashMessage && flashMessage && (
-        <div className="p-4 bg-green-200 text-green-800 rounded-md mb-4">
-          {flashMessage}
-        </div>
-      )}
+      <Notification
+        successMessage={successMessage}
+        errorMessage={errorMessage}
+      />
 
       {books.length === 0 ? (
         <p>No hay libros disponibles.</p>

@@ -1,58 +1,60 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import {
+  json,
+  Link,
+  LoaderFunction,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import Navigation from "~/components/Layout";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  // Obtener los parámetros de búsqueda de la URL
+  const url = new URL(request.url);
+  const searchQuery = url.searchParams.get("name");
+
+  if (!searchQuery) {
+    return json({ users: [], errorMessage: "No search query provided" });
+  }
+
+  try {
+    const cookieHeader = request.headers.get("Cookie");
+    const token = await getAuthTokenFromCookie(cookieHeader);
+
+    if (!token) {
+      return json({ users: [], errorMessage: "No token found" });
+    }
+
+    // Realizar la búsqueda de usuarios por nombre
+    const res = await fetch(`http://localhost/api/users?name=${searchQuery}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      return json({ users: [], errorMessage: "Error fetching users" });
+    }
+
+    const data = await res.json();
+
+    if (data.data.users.data.length > 0) {
+      return json({ users: data.data.users.data, errorMessage: null });
+    } else {
+      return json({ users: [], errorMessage: "No users found" });
+    }
+  } catch (error) {
+    console.error(error);
+    return json({ users: [], errorMessage: "Error fetching users" });
+  }
+};
 
 const UserSearchResults = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [users, setUsers] = useState<any[]>([]); // Almacena los usuarios encontrados
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Para manejar los errores
-
-  useEffect(() => {
-    // Obtener el parámetro de búsqueda 'name' de la URL
-    const params = new URLSearchParams(location.search);
-    const searchQuery = params.get("name");
-
-    if (searchQuery) {
-      // Hacer la búsqueda de usuarios por nombre
-      const fetchUsers = async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const res = await fetch(
-            `http://localhost/api/users?name=${searchQuery}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (res.ok) {
-            const data = await res.json();
-            if (data.data.users.data.length > 0) {
-              setUsers(data.data.users.data);
-            } else {
-              setErrorMessage("No users found");
-            }
-          } else {
-            setErrorMessage("Error fetching users");
-          }
-        } catch (error) {
-          setErrorMessage("Error fetching users");
-          console.error(error);
-        }
-      };
-
-      fetchUsers();
-    }
-  }, [location]);
-
-  const handleUserClick = (userId: string) => {
-    navigate(`/profile/${userId}`); // Redirige al perfil del usuario al hacer clic
-  };
+  const { users, errorMessage } = useLoaderData(); // Obtenemos los datos cargados por el loader
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -72,7 +74,6 @@ const UserSearchResults = () => {
 
           {/* User Results */}
           <div>
-            {console.log("users" + users)}
             {users.length > 0 ? (
               users.map((user: any) => (
                 <div
@@ -95,12 +96,12 @@ const UserSearchResults = () => {
                   </div>
 
                   {/* Botón para ver perfil */}
-                  <button
-                    onClick={() => handleUserClick(user.id)}
+                  <Link
+                    to={`/profile/${user.id}`}
                     className="ml-auto px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                   >
                     View Profile
-                  </button>
+                  </Link>
                 </div>
               ))
             ) : (

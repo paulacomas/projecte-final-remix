@@ -74,10 +74,10 @@ export default function AdminNavigation() {
       <div className="flex items-center gap-4 w-full justify-between md:w-auto">
         {/* Enlace de Dashboard */}
         <Link
-          to="/admin/books"
+          to="/"
           className="text-blue-500 font-bold text-xl sm:text-lg md:text-xl"
         >
-          Admin Panel
+          Books
         </Link>
 
         {/* Botón para abrir el menú en dispositivos móviles */}

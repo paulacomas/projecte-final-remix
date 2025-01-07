@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { Form } from "@remix-run/react";
 import { useLocation } from "@remix-run/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import Notification from "~/components/Notification";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,11 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const successMessage = searchParams.get("success");
+  const errorMessage = searchParams.get("error");
+
   const message = new URLSearchParams(location.search).get("message");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +54,10 @@ export default function Login() {
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Layout />
       <main className="flex flex-col items-center justify-center flex-1 py-12">
+        <Notification
+          successMessage={successMessage}
+          errorMessage={errorMessage}
+        />
         <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-8 space-y-6">
           <h2 className="text-2xl font-bold mb-4">Login</h2>
           {message && <p className="text-red-500 mb-4">{message}</p>}

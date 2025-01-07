@@ -92,14 +92,15 @@ export default function PublishBookPage() {
       });
 
       if (!response.ok) {
+        navigate(`/books/add?error=Error%20al%20publicar%20el%20libro`);
         throw new Error("Failed to publish the book");
       }
 
       const data = await response.json();
-      setSuccessMessage("Book published successfully!");
-      addNotification("Book published successfully!", "success");
 
-      navigate(`/books/details/${data.data.id}`); // Redirigir al detalle del libro
+      navigate(
+        `/books/details/${data.data.id}?success=Libro%20publicado%20correctamente`
+      ); // Redirigir al detalle del libro
 
       setFormData({
         title: "",
@@ -111,9 +112,8 @@ export default function PublishBookPage() {
         image_book: null,
       });
     } catch (error) {
+      navigate(`/books/add?error=Error%20al%20publicar%20el%20libro`);
       console.error("Error publishing book:", error);
-      addNotification("Error publishing the book. Please try again.", "error");
-      setError("Error publishing the book. Please try again.");
     }
   };
 

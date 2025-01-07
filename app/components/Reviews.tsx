@@ -1,5 +1,6 @@
 import React from "react";
 import StarRating from "./StarRating";
+import { Form, Link } from "@remix-run/react";
 
 interface Review {
   id: string;
@@ -15,16 +16,12 @@ interface ReviewsProps {
   reviews: Review[];
   bookUserid: string;
   currentUserId: string; // Añadir el ID del usuario autenticado
-  onEdit: (reviewId: string) => void;
-  onDelete: (reviewId: string) => void;
 }
 
 const Reviews: React.FC<ReviewsProps> = ({
   reviews,
   bookUserid,
   currentUserId,
-  onEdit,
-  onDelete,
 }) => (
   <div className="bg-white p-6 rounded-lg shadow-md mb-8">
     <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
@@ -41,18 +38,33 @@ const Reviews: React.FC<ReviewsProps> = ({
         {(review.user?.id === currentUserId ||
           currentUserId === bookUserid) && (
           <div className="mt-4 flex space-x-4">
-            <button
-              onClick={() => onEdit(review.id, review.comment, review.score)}
+            <Link
+              to={`review/edit/${review.id}`}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               Edit
-            </button>
-            <button
-              onClick={() => onDelete(review.id)}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            </Link>
+            <Form
+              method="post"
+              action={`review/delete/${review.id}`}
+              className="inline"
             >
-              Delete
-            </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                onClick={(e) => {
+                  if (
+                    !window.confirm(
+                      "¿Estás seguro de que deseas eliminar esta reseña?"
+                    )
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                Eliminar
+              </button>
+            </Form>
           </div>
         )}
       </div>

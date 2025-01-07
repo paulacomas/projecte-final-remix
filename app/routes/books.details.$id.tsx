@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, redirect, json, Form } from "@remix-run/react";
+import {
+  useParams,
+  useNavigate,
+  redirect,
+  json,
+  Form,
+  Link,
+  Outlet,
+  useLoaderData,
+  useSearchParams,
+} from "@remix-run/react";
 import Layout from "../components/Layout";
 import {
   fetchBookDetails,
@@ -11,34 +21,14 @@ import {
 } from "../data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { ActionFunction, LoaderFunction } from "@remix-run/node";
-import Modal from "../components/Modal";
 import Reviews from "~/components/Reviews";
 import Comments from "~/components/Comments";
-import AddReviewForm from "~/components/AddReviewForm";
-import AddCommentForm from "~/components/AddCommentForm";
-import EditBookForm from "~/components/EditBookForm";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
-import {
-  handleAddComment,
-  handleDeleteComment,
-  handleEditComment,
-  handleEditCommentSubmit,
-} from "~/util/comments";
-import {
-  handleAddReview,
-  handleDeleteReview,
-  handleEditReview,
-  handleEditReviewSubmit,
-} from "~/util/reviews";
-import { handleSaveChanges } from "~/util/BookDetails";
-import {
-  handleAddReply,
-  handleEditReply,
-  handleReplyDelete,
-} from "~/util/Reply";
 import { BookDetails, Review, User } from "~/data/types";
 import { useNotifications } from "~/contexts/NotificationContext";
+import Notification from "~/components/Notification";
 
+// Loader para cargar detalles del libro
 // Loader para cargar detalles del libro
 export const loader: LoaderFunction = async ({ request, params }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -50,9 +40,17 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
   try {
     const book = await fetchBookDetails(params.id, token);
-    return json(book);
+    const currentUser = await fetchCurrentUser(token);
+    const savedBooksResponse = await getSavedBooks(token);
+
+    const savedBookIds = Array.isArray(savedBooksResponse.data)
+      ? savedBooksResponse.data.map((book: { book_id: string }) => book.book_id)
+      : [];
+
+    return json({ book, currentUser, savedBookIds });
   } catch (error) {
-    return json({ error: "Error fetching book details" }, { status: 500 });
+    console.error("Error fetching data in loader:", error);
+    return json({ error: "Error fetching data" }, { status: 500 });
   }
 };
 
@@ -68,8 +66,14 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   if (actionType === "delete") {
     try {
-      await deleteBook(params.id, token);
-      return redirect("/");
+      const response = await deleteBook(params.id, token);
+      if (!response.ok) {
+        const errorUrl = `/books/details/${params.id}?error=Error%20al%20eliminar%20el%20libro`;
+        return redirect(errorUrl);
+      }
+
+      const successUrl = `/?success=Libro%20eliminado%20correctamente`;
+      return redirect(successUrl);
     } catch (error) {
       return json({ error: "Error deleting the book" }, { status: 500 });
     }
@@ -81,68 +85,25 @@ export const action: ActionFunction = async ({ request, params }) => {
 export default function BookDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [book, setBook] = useState<BookDetails | null>(null);
+  const { book, currentUser, savedBookIds } = useLoaderData<{
+    book: BookDetails;
+    currentUser: User;
+    savedBookIds: string[];
+  }>();
   const [error, setError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [editReview, setEditReview] = useState<Review | null>(null); // Estado para la reseña a editar
-  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
-  const [editComment, setEditComment] = useState<Comment | null>(null);
-  const [savedBooks, setSavedBooks] = useState<Set<string>>(new Set());
+  const [savedBooks, setSavedBooks] = useState<Set<string>>(
+    new Set(savedBookIds)
+  );
   const { addNotification } = useNotifications();
+  const [searchParams] = useSearchParams();
+
+  const successMessage = searchParams.get("success");
+  const errorMessage = searchParams.get("error");
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!id) {
-        setError("No book ID found");
-        return;
-      }
-
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("No token found");
-        navigate("/login?message=You%20need%20to%20be%20logged%20in");
-        return;
-      }
-
-      try {
-        const bookData = await fetchBookDetails(id, token);
-        setBook(bookData);
-
-        const userData = await fetchCurrentUser(token);
-        setCurrentUser(userData);
-      } catch (e) {
-        setError("Error fetching book details or user data");
-        navigate("/error", {
-          state: { error: "Error fetching book details or user data" },
-        });
-      }
-
-      const fetchSavedBooks = async () => {
-        try {
-          const token = localStorage.getItem("token");
-          if (token) {
-            const response = await getSavedBooks(token);
-            const savedBookIds = response.data.map(
-              (book: { book_id: string }) => book.book_id
-            );
-            setSavedBooks(new Set(savedBookIds));
-          }
-        } catch (error) {
-          console.error("Error fetching saved books:", error);
-          navigate("/error", {
-            state: { error: "Error fetching saved books" },
-          });
-        }
-      };
-
-      fetchSavedBooks();
-    };
-
-    fetchData();
-  }, [id, navigate]);
+    // Asegurar que el estado inicial sea un Set
+    setSavedBooks(new Set(savedBookIds));
+  }, [savedBookIds]);
 
   const toggleSaveBook = async (bookId: string) => {
     try {
@@ -194,6 +155,10 @@ export default function BookDetailPage() {
         </nav>
       </header>
       <main className="container mx-auto py-8 p-6">
+        <Notification
+          successMessage={successMessage}
+          errorMessage={errorMessage}
+        />
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h1 className="text-3xl font-semibold mb-4">{book.title}</h1>
           <div className="flex items-center mb-6">
@@ -230,14 +195,12 @@ export default function BookDetailPage() {
 
         {isOwner && (
           <div className="flex space-x-4 mb-8">
-            <button
-              onClick={() => {
-                setIsModalOpen(true);
-              }}
+            <Link
+              to={`edit`}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               Edit Book
-            </button>
+            </Link>
             <Form method="POST" action={`/books/details/${book.id}`}>
               <input type="hidden" name="action" value="delete" />
               <button
@@ -251,160 +214,38 @@ export default function BookDetailPage() {
         )}
         <div className="mb-8">
           <div className="flex justify-end mb-4">
-            <button
-              onClick={() => {
-                setEditReview(null); // Reset the edit review state when adding a new review
-                setIsReviewModalOpen(true);
-              }}
+            <Link
+              to={`review/add`}
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
-              Add Review
-            </button>
+              Add review
+            </Link>
           </div>
-
-          {isReviewModalOpen && (
-            <Modal onClose={() => setIsReviewModalOpen(false)}>
-              <h2 className="text-xl font-semibold mb-4">
-                {editReview ? "Edit Review" : "Add Review"}
-              </h2>
-              <AddReviewForm
-                bookId={book.id}
-                reviewData={editReview} // Pasa los datos de la reseña a editar
-                onClose={() => setIsReviewModalOpen(false)}
-                onSubmit={
-                  editReview
-                    ? (event) =>
-                        handleEditReviewSubmit(
-                          event,
-                          editReview,
-                          setBook,
-                          setError,
-                          setIsReviewModalOpen
-                        )
-                    : (event) =>
-                        handleAddReview(
-                          event,
-                          book.id,
-                          setBook,
-                          setError,
-                          setIsReviewModalOpen
-                        )
-                }
-              />
-            </Modal>
-          )}
-
-          {isModalOpen && (
-            <Modal onClose={() => setIsModalOpen(false)}>
-              <EditBookForm
-                book={book} // Asegúrate de pasar el libro a editar
-                onCancel={() => setIsModalOpen(false)} // Cerrar el modal
-                onSubmit={(updatedBookData: any) => {
-                  handleSaveChanges(
-                    updatedBookData, // Pasar los datos actualizados del libro
-                    book, // Pasar el libro actual
-                    setBook, // Pasar el setter de estado para actualizar el libro
-                    setError, // Pasar el setter de estado para los errores
-                    setIsModalOpen // Pasar el setter de estado para cerrar el modal
-                  );
-                }} // Función para manejar el envío del formulario
-              />
-            </Modal>
-          )}
-
-          {isCommentModalOpen && (
-            <Modal onClose={() => setIsCommentModalOpen(false)}>
-              <h2 className="text-xl font-semibold mb-4">
-                {editComment ? "Edit Comment" : "Add Comment"}
-              </h2>
-              <AddCommentForm
-                bookId={book.id}
-                commentData={editComment || null} // Pasa los datos de la reseña a editar
-                onClose={() => setIsCommentModalOpen(false)}
-                onSubmit={
-                  editComment
-                    ? (event) =>
-                        handleEditCommentSubmit(
-                          event,
-                          editComment,
-                          setBook,
-                          setError,
-                          setIsCommentModalOpen
-                        )
-                    : (event) =>
-                        handleAddComment(
-                          event,
-                          book.id,
-                          setBook,
-                          setError,
-                          setIsCommentModalOpen
-                        )
-                }
-              />
-            </Modal>
-          )}
-
           {book.reviews && (
             <Reviews
               reviews={book.reviews}
               bookUserid={book.user_id}
               currentUserId={currentUser?.id || ""}
-              onEdit={(reviewId: string, content: string, rating: number) =>
-                handleEditReview(
-                  reviewId,
-                  content,
-                  rating,
-                  setEditReview,
-                  setIsReviewModalOpen
-                )
-              }
-              onDelete={(reviewId: string) =>
-                handleDeleteReview(reviewId, setBook, setError)
-              }
             />
           )}
           <div className="flex justify-end mb-4">
-            <button
-              onClick={() => {
-                setEditComment(null); // Reset the edit review state when adding a new review
-                setIsCommentModalOpen(true);
-              }}
+            <Link
+              to={`comment/add`}
               className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
             >
-              Add Comment
-            </button>
+              Add comment
+            </Link>
           </div>
-
           {book.comments && (
             <Comments
               comments={book.comments}
               bookUserid={book.user_id}
               currentUserId={currentUser?.id || ""}
-              onEdit={(commentId: string, content: string) =>
-                handleEditComment(
-                  commentId,
-                  content,
-                  setEditComment,
-                  setIsCommentModalOpen
-                )
-              }
-              onDelete={(commentId: string) =>
-                handleDeleteComment(commentId, setBook, setError)
-              }
-              onReplyAdd={(
-                commentId: string,
-                event: React.FormEvent<HTMLFormElement>
-              ) => handleAddReply(commentId, event, setBook, setError)}
-              onReplyEdit={(replyId: string, updatedResponse: string) =>
-                handleEditReply(replyId, updatedResponse, setBook, setError)
-              }
-              onReplyDelete={(replyId: string) =>
-                handleReplyDelete(replyId, setBook, setError)
-              }
             />
           )}
         </div>
       </main>
+      <Outlet />
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Form, Link } from "@remix-run/react";
+import Replies from "./Replies";
 
 interface Reply {
   id: string;
@@ -23,75 +25,17 @@ interface CommentsProps {
   comments: Comment[];
   bookUserid: string;
   currentUserId: string;
-  onEdit: (commentId: string, response: string) => void;
-  onDelete: (commentId: string) => void;
-  onReplyEdit: (replyId: string, response: string) => void;
-  onReplyDelete: (replyId: string) => void;
-  onReplyAdd: (
-    commentId: string,
-    event: React.FormEvent<HTMLFormElement>
-  ) => void;
 }
 
 const Comments: React.FC<CommentsProps> = ({
   comments,
   bookUserid,
   currentUserId,
-  onEdit,
-  onDelete,
-  onReplyEdit,
-  onReplyDelete,
-  onReplyAdd,
 }) => {
   const [openComment, setOpenComment] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
-  const [editingReply, setEditingReply] = useState<Reply | null>(null);
-  const [replyContent, setReplyContent] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const toggleReplies = (commentId: string) => {
     setOpenComment(openComment === commentId ? null : commentId);
-  };
-
-  const openReplyModal = (commentId: string) => {
-    setActiveCommentId(commentId);
-    setEditingReply(null);
-    setReplyContent("");
-    setErrorMessage(""); // Limpiar el error al abrir el modal
-    setModalOpen(true);
-  };
-
-  const openEditReplyModal = (reply: Reply) => {
-    setEditingReply(reply);
-    setReplyContent(reply.response);
-    setErrorMessage(""); // Limpiar el error al abrir el modal de edición
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setActiveCommentId(null);
-    setEditingReply(null);
-    setReplyContent("");
-    setErrorMessage(""); // Limpiar el error al cerrar el modal
-  };
-
-  const handleReplySubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Validación: no permitir respuestas vacías
-    if (!replyContent.trim()) {
-      setErrorMessage("Reply cannot be empty.");
-      return;
-    }
-
-    if (editingReply) {
-      onReplyEdit(editingReply.id, replyContent);
-    } else if (activeCommentId) {
-      onReplyAdd(activeCommentId, e);
-    }
-    closeModal();
   };
 
   return (
@@ -108,12 +52,12 @@ const Comments: React.FC<CommentsProps> = ({
               >
                 {openComment === comment.id ? "Hide Replies" : "Show Replies"}
               </button>
-              <button
-                onClick={() => openReplyModal(comment.id)}
-                className="text-green-500 hover:underline"
+              <Link
+                to={`response/add/${comment.id}`}
+                className="px-4 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
-                Reply
-              </button>
+                Add Reply
+              </Link>
             </div>
           </div>
           <p className="text-gray-700 mb-2">{comment.content}</p>
@@ -121,98 +65,42 @@ const Comments: React.FC<CommentsProps> = ({
           {(comment.user.id === currentUserId ||
             currentUserId === bookUserid) && (
             <div className="mt-4 flex space-x-4">
-              <button
-                onClick={() => onEdit(comment.id, comment.content)}
+              <Link
+                to={`comment/edit/${comment.id}`}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 Edit
-              </button>
-              <button
-                onClick={() => onDelete(comment.id)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              >
-                Delete
-              </button>
+              </Link>
+              <Form method="post" action={`comment/delete/${comment.id}`}>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  onClick={(e) => {
+                    if (
+                      !window.confirm(
+                        "¿Estás seguro de que deseas eliminar este comentarip?"
+                      )
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Eliminar
+                </button>
+              </Form>
             </div>
           )}
 
           {openComment === comment.id && (
-            <div className="mt-4 ml-6">
-              <h3 className="text-xl font-semibold">Replies</h3>
-              {comment.responses.length > 0 ? (
-                comment.responses.map((reply) => (
-                  <div
-                    key={reply.id}
-                    className="border-t border-gray-300 mt-2 pt-2"
-                  >
-                    <p className="text-gray-600">
-                      {reply.user.name}: {reply.response}
-                    </p>
-                    {(reply.user.id === currentUserId ||
-                      currentUserId === bookUserid) && (
-                      <div className="mt-2 flex space-x-4">
-                        <button
-                          onClick={() => openEditReplyModal(reply)}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => onReplyDelete(reply.id)}
-                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 mt-2">No replies yet</p>
-              )}
-            </div>
+            <Replies
+              replies={comment.responses}
+              commentId={comment.id}
+              bookUserid={bookUserid}
+              currentUserId={currentUserId}
+            />
           )}
         </div>
       ))}
-
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-1/3">
-            <h2 className="text-2xl font-semibold mb-4">
-              {editingReply ? "Edit Reply" : "Add Reply"}
-            </h2>
-            <form onSubmit={handleReplySubmit} className="flex flex-col">
-              <textarea
-                name="response"
-                rows={3}
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                className="p-2 border rounded-lg mb-4"
-                placeholder="Write your reply here..."
-              />
-              {errorMessage && (
-                <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
-              )}
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                >
-                  {editingReply ? "Save Changes" : "Submit"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { Form, useNavigate } from "@remix-run/react";
+import { Form, Link, useNavigate } from "@remix-run/react";
 
 interface BookFormProps {
   book: {
@@ -15,10 +15,6 @@ interface BookFormProps {
 
 export default function BookFormAdmin({ book }: BookFormProps) {
   const navigate = useNavigate();
-
-  const handleCancel = () => {
-    navigate("/admin/books");
-  };
 
   return (
     <Form method="post">
@@ -99,13 +95,12 @@ export default function BookFormAdmin({ book }: BookFormProps) {
         />
       </div>
       <div className="mb-4 flex justify-between">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="py-2 px-4 bg-gray-500 text-white font-semibold rounded-md hover:bg-gray-600"
+        <Link
+          to=".."
+          className="py-2 px-4 bg-gray-300 text-black rounded hover:bg-gray-400"
         >
           Cancelar
-        </button>
+        </Link>
         <button
           type="submit"
           className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"

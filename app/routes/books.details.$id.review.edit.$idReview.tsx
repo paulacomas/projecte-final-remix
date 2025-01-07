@@ -7,16 +7,17 @@ import { fetchCurrentUser, fetchReviews } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  const reviewId = params.id;
+  const reviewId = params.idReview;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
-  const user = await fetchCurrentUser(token);
-  console.log(user);
-  if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
-  }
   const reviews = await fetchReviews(token);
   const review = reviews.data.find((r: any) => r.id === Number(reviewId));
+  const user = await fetchCurrentUser(token);
+  console.log(user);
+
+  if (review.user_id !== user.id) {
+    throw new Error("No tienes permiso para editar este libro");
+  }
 
   if (!review) {
     throw new Response("Reseña no encontrada", { status: 404 });
@@ -26,7 +27,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
-  const reviewId = params.id;
+  const reviewId = params.idReview;
+  const bookId = params.id;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
 
@@ -45,11 +47,11 @@ export const action: ActionFunction = async ({ request, params }) => {
   console.log(response);
 
   if (!response.ok) {
-    const errorUrl = `/admin/reviews?error=Error%20al%20actualizar%20la%20`;
+    const errorUrl = `/books/details/${bookId}?error=Error%20al%20editar%20la%20review`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/admin/reviews?success=Review%20editada%20correctamente`;
+  const successUrl = `/books/details/${bookId}?success=Review%20editada%20correctamente`;
   return redirect(successUrl);
 };
 

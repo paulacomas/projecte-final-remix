@@ -1,5 +1,5 @@
 // components/ReviewForm.tsx
-import { Form } from "@remix-run/react";
+import { Form, Link } from "@remix-run/react";
 import { useState, useEffect } from "react";
 import { FaStar } from "react-icons/fa";
 
@@ -60,12 +60,20 @@ export default function ReviewForm({ review }: ReviewFormProps) {
           required
         ></textarea>
       </div>
-      <button
-        type="submit"
-        className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
-      >
-        Guardar
-      </button>
+      <div className="flex gap-4">
+        <button
+          type="submit"
+          className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
+        >
+          Guardar
+        </button>
+        <Link
+          to=".."
+          className="py-2 px-4 bg-gray-300 text-black rounded hover:bg-gray-400"
+        >
+          Cancelar
+        </Link>
+      </div>
     </Form>
   );
 }
