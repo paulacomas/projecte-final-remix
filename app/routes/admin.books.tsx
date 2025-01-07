@@ -21,8 +21,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
     return json({ books: books.data });
   } catch (error) {
-    console.error("Error al obtener los libros:", error);
-    return json({ error: "No se pudieron obtener los libros." });
+    throw new Error("Error fectching books");
   }
 };
 

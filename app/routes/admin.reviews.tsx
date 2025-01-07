@@ -19,8 +19,7 @@ export async function loader({ request }) {
     const reviews = await fetchReviews(token);
     return json({ reviews: reviews.data });
   } catch (error) {
-    console.error("Error al obtener reseñas:", error);
-    return { error: "No se pudieron obtener las reseñas." };
+    throw new Error("Error al obtener las reseñas");
   }
 }
 

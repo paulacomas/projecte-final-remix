@@ -25,7 +25,6 @@ import Reviews from "~/components/Reviews";
 import Comments from "~/components/Comments";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { BookDetails, Review, User } from "~/data/types";
-import { useNotifications } from "~/contexts/NotificationContext";
 import Notification from "~/components/Notification";
 
 // Loader para cargar detalles del libro
@@ -49,8 +48,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
     return json({ book, currentUser, savedBookIds });
   } catch (error) {
-    console.error("Error fetching data in loader:", error);
-    return json({ error: "Error fetching data" }, { status: 500 });
+    throw new Error("Error fectching book");
   }
 };
 
@@ -94,7 +92,6 @@ export default function BookDetailPage() {
   const [savedBooks, setSavedBooks] = useState<Set<string>>(
     new Set(savedBookIds)
   );
-  const { addNotification } = useNotifications();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
@@ -127,13 +124,11 @@ export default function BookDetailPage() {
         const response = await saveBook(bookId, token);
         console.log("Save response:", response); // Depuración
         setSavedBooks((prev) => new Set(prev).add(bookId));
-        addNotification("Product saved successfully!", "success");
+        navigate(".?success=Libro%20guardado%20correctamente");
       }
     } catch (error: any) {
       console.error("Error toggling save book:", error.message);
-      navigate("/error", {
-        state: { error: "Error toggling save book" },
-      });
+      navigate(".?error=Error%20al%20guardar");
     }
   };
 

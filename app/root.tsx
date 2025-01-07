@@ -78,14 +78,5 @@ export function ErrorBoundary() {
 }
 
 export default function App() {
-  return (
-    <NotificationProvider>
-      <div>
-        {/* Global notification component */}
-        <Notification />
-        {/* Your main app content */}
-        <Outlet />
-      </div>
-    </NotificationProvider>
-  );
+  return <Outlet />;
 }

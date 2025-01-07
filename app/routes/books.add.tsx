@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom";
-import { useNotifications } from "~/contexts/NotificationContext";
 import {
   validateTitle,
   validateDescription,
@@ -23,7 +22,6 @@ export default function PublishBookPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { addNotification } = useNotifications();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

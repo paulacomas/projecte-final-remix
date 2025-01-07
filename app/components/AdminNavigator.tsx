@@ -23,7 +23,7 @@ export default function AdminNavigation() {
         const userData = await fetchCurrentUser(token);
         setCurrentUser(userData);
       } catch (error) {
-        console.error("Error fetching user:", error);
+        throw new Error("Error fectching user");
       }
     };
 
@@ -52,7 +52,7 @@ export default function AdminNavigation() {
       document.cookie =
         "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-      navigate("/login");
+      navigate("/login?success=Logout%20hecho%20correctamente");
     } catch (error) {
       console.error("Error logging out:", error);
     }

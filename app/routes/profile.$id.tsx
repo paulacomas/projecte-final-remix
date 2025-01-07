@@ -25,6 +25,10 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const userData = await fetchUserById(params.id, token); // Cargar datos del usuario
   const currentUser = await fetchCurrentUser(token); // Obtener datos del usuario actual
 
+  if (!userData || !currentUser) {
+    throw new Error("Error fectching user");
+  }
+
   return json({ userData, currentUser });
 };
 

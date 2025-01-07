@@ -5,7 +5,6 @@ import EditBookForm from "./EditBookForm";
 import Navigation from "./Layout";
 import { getSavedBooks, saveBook, unsaveBook, updateBook } from "~/data/data";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
-import { useNotifications } from "~/contexts/NotificationContext";
 
 interface Book {
   id: string;
@@ -30,7 +29,6 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [savedBooks, setSavedBooks] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
-  const { addNotification } = useNotifications();
 
   useEffect(() => {
     // Fetch saved books for the user
@@ -79,6 +77,7 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
       }
     } catch (error: any) {
       console.error("Error toggling save book:", error.message);
+      navigate(".?error=Error%20al%20guardar");
     }
   };
 

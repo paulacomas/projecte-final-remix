@@ -46,10 +46,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       userId: userResponse.id, // User ID
     });
   } catch (error) {
-    return json(
-      { error: "Error fetching books or user data" },
-      { status: 500 }
-    );
+    throw new Error("Error fectching books or user data");
   }
 };
 

@@ -19,8 +19,7 @@ export async function loader({ request }) {
     const replies = await fetchReplies(token);
     return json({ replies: replies.data });
   } catch (error) {
-    console.error("Error al obtener respuestas:", error);
-    return { error: "No se pudieron obtener las respuestas." };
+    throw new Error("Error al obtener la respuesta");
   }
 }
 

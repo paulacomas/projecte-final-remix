@@ -26,8 +26,7 @@ export async function loader({ request }) {
     const comments = await fetchComments(token);
     return json({ comments: comments.data }); // Retorna los usuarios para la vista
   } catch (error) {
-    console.error("Error al obtener usuarios:", error);
-    return { error: "No se pudieron obtener los usuarios." };
+    throw new Error("Error al cargar los comentarios");
   }
 }
 

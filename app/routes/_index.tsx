@@ -63,11 +63,7 @@ export async function loader({ request }) {
       totalPages,
     };
   } catch (error) {
-    console.error("Error fetching books:", error);
-    redirect("/error", {
-      state: { error: "Error fetching books" },
-    });
-    return [];
+    throw new Error("Error fectching books");
   }
 }
 
