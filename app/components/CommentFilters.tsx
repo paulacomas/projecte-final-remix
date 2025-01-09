@@ -1,25 +1,24 @@
+// components/CommentFilters.tsx
 import { Form } from "@remix-run/react";
-import { FC } from "react";
+import React from "react";
 
-interface BookFiltersProps {
+interface CommentFiltersProps {
   title: string;
   user: string;
-  category: string;
-  categories: string[];
+  content: string;
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onUserChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onCategoryChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onContentChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSearch: (e: React.FormEvent) => void;
 }
 
-const BookFilters: FC<BookFiltersProps> = ({
+const CommentFilters: React.FC<CommentFiltersProps> = ({
   title,
   user,
-  category,
-  categories,
+  content,
   onTitleChange,
   onUserChange,
-  onCategoryChange,
+  onContentChange,
   onSearch,
 }) => {
   return (
@@ -37,11 +36,10 @@ const BookFilters: FC<BookFiltersProps> = ({
           </label>
           <input
             type="text"
-            id="title"
-            placeholder="Enter the title"
+            placeholder="Filter by title"
+            className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={title}
             onChange={onTitleChange}
-            className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -54,41 +52,30 @@ const BookFilters: FC<BookFiltersProps> = ({
           </label>
           <input
             type="text"
-            id="user"
-            placeholder="Enter the name"
+            placeholder="Filter by user"
+            className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={user}
             onChange={onUserChange}
-            className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-
         <div className="flex-1 min-w-[250px]">
           <label
-            htmlFor="category"
+            htmlFor="user"
             className="block text-sm font-medium text-gray-700"
           >
-            Select category
+            Search by content
           </label>
-          <div className="flex items-center gap-4">
-            {" "}
-            <select
-              id="category"
-              value={category}
-              onChange={onCategoryChange}
-              className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
+          <input
+            type="text"
+            placeholder="Filter by content"
+            className="mt-1 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={content}
+            onChange={onContentChange}
+          />
         </div>
       </div>
     </Form>
   );
 };
 
-export default BookFilters;
+export default CommentFilters;

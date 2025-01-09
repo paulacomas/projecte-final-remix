@@ -1,27 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
+  Link,
   Outlet,
-  redirect,
   useLoaderData,
   useNavigate,
   useSearchParams,
 } from "@remix-run/react";
-import BooksList from "../components/books"; // Asegúrate de importar correctamente el componente BooksList
+import BooksList from "../components/books";
 import BookFilters from "~/components/BookFilters";
 import Navigation from "~/components/Layout";
 import Notification from "~/components/Notification";
 
-export async function loader({ request }) {
+import type { LoaderFunction } from "@remix-run/node";
+
+export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
 
-  // Obtener los parámetros de búsqueda de la URL (query params)
   const title = url.searchParams.get("title") || "";
   const user = url.searchParams.get("user") || "";
   const category = url.searchParams.get("category") || "";
-  const page = parseInt(url.searchParams.get("page") || "1"); // Página actual, por defecto es la 1
+  const page = parseInt(url.searchParams.get("page") || "1");
 
-  const limit = 16; // Número de productos por página
-  const offset = (page - 1) * limit; // Calcular el índice de inicio según la página
+  const limit = 16;
+  const offset = (page - 1) * limit;
 
   try {
     const response = await fetch("http://localhost/api/books", {
@@ -31,31 +32,30 @@ export async function loader({ request }) {
       throw new Error(`Failed to fetch books: ${response.statusText}`);
     }
     const data = await response.json();
-    let books = data.data; // Todos los libros
+    let books = data.data;
 
-    // Filtrar los libros en el servidor antes de devolverlos
     if (title) {
-      books = books.filter((book) =>
+      books = books.filter((book: { title: string }) =>
         book.title.toLowerCase().includes(title.toLowerCase())
       );
     }
 
     if (user) {
-      books = books.filter((book) =>
+      books = books.filter((book: { user: { name: string } }) =>
         book.user.name.toLowerCase().includes(user.toLowerCase())
       );
     }
 
     if (category) {
       books = books.filter(
-        (book) => book.gender.toLowerCase() === category.toLowerCase()
+        (book: { gender: string }) =>
+          book.gender.toLowerCase() === category.toLowerCase()
       );
     }
 
-    // Paginar los libros
-    const totalBooks = books.length; // Total de libros filtrados
-    const totalPages = Math.ceil(totalBooks / limit); // Calcular el número total de páginas
-    books = books.slice(offset, offset + limit); // Seleccionar solo los libros para la página actual
+    const totalBooks = books.length;
+    const totalPages = Math.ceil(totalBooks / limit);
+    books = books.slice(offset, offset + limit);
 
     return {
       books,
@@ -65,65 +65,64 @@ export async function loader({ request }) {
   } catch (error) {
     throw new Error("Error fectching books");
   }
-}
+};
 
 export default function Index() {
   const navigate = useNavigate();
-  const { books, page, totalPages } = useLoaderData(); // Libros, página actual y total de páginas cargados desde el loader
+  const { books, page, totalPages } = useLoaderData();
   const [title, setTitle] = useState("");
   const [user, setUser] = useState("");
   const [category, setCategory] = useState("");
   const [searchParams] = useSearchParams();
 
-  const successMessage = searchParams.get("success");
-  const errorMessage = searchParams.get("error");
+  const successMessage = searchParams.get("success") || undefined;
+  const errorMessage = searchParams.get("error") || undefined;
 
-  const categories = ["Fiction", "Non-Fiction", "Science", "Art"]; // Esto puede venir de tu API si es necesario
+  const categories = ["Fiction", "Non-Fiction", "Science", "Art"];
 
-  // Función para actualizar la URL con los filtros
-  const updateUrlWithFilters = (newTitle, newUser, newCategory, newPage) => {
+  const updateUrlWithFilters = (
+    newTitle: string,
+    newUser: string,
+    newCategory: string,
+    newPage: number
+  ) => {
     const queryParams = new URLSearchParams();
     if (newTitle) queryParams.set("title", newTitle);
     if (newUser) queryParams.set("user", newUser);
     if (newCategory) queryParams.set("category", newCategory);
-    if (newPage) queryParams.set("page", newPage);
+    if (newPage) queryParams.set("page", newPage.toString());
 
-    // Actualizamos la URL sin recargar la página
     navigate(`?${queryParams.toString()}`);
   };
 
-  // Manejar los cambios en los filtros
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-    updateUrlWithFilters(newTitle, user, category, 1); // Reiniciar a la página 1
+    updateUrlWithFilters(newTitle, user, category, 1);
   };
 
   const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUser = e.target.value;
     setUser(newUser);
-    updateUrlWithFilters(title, newUser, category, 1); // Reiniciar a la página 1
+    updateUrlWithFilters(title, newUser, category, 1);
   };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCategory = e.target.value;
     setCategory(newCategory);
-    updateUrlWithFilters(title, user, newCategory, 1); // Reiniciar a la página 1
+    updateUrlWithFilters(title, user, newCategory, 1);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Los filtros ya se aplican cuando se actualiza la URL
   };
 
-  // Navegar a la siguiente página
   const goToNextPage = () => {
     if (page < totalPages) {
       updateUrlWithFilters(title, user, category, page + 1);
     }
   };
 
-  // Navegar a la página anterior
   const goToPreviousPage = () => {
     if (page > 1) {
       updateUrlWithFilters(title, user, category, page - 1);
@@ -132,47 +131,81 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Navigation />
-        </nav>
-      </header>
+      <Navigation />
       <div>
-        <BookFilters
-          title={title}
-          user={user}
-          category={category}
-          categories={categories}
-          onTitleChange={handleTitleChange}
-          onUserChange={handleUserChange}
-          onCategoryChange={handleCategoryChange}
-          onSearch={handleSearch}
-        />
-        <Notification
-          successMessage={successMessage}
-          errorMessage={errorMessage}
-        />
-        {/* Mostrar la lista de libros filtrados */}
-        <BooksList books={books} />
+        <div className="container mx-auto p-4 pt-0">
+          <Notification
+            successMessage={successMessage}
+            errorMessage={errorMessage}
+          />
+          <div className="relative bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-6 my-6 rounded-lg shadow-lg">
+            <div className="container mx-auto flex items-center justify-between px-4 md:px-10">
+              <div className="flex flex-col md:flex-row items-center justify-between w-full">
+                <div className="mb-4 md:mb-0">
+                  <h2 className="text-3xl font-bold leading-tight">
+                    Discover the Best Books
+                  </h2>
+                  <p className="text-lg mt-2">
+                    Explore the most popular and highly rated books by our
+                    community.
+                  </p>
+                </div>
+                <Link
+                  to="/books/ranking"
+                  className="mt-4 md:mt-0 px-6 py-3 bg-white text-blue-700 font-bold rounded-md shadow-md hover:bg-gray-100 transition-all flex items-center space-x-2"
+                >
+                  <span>See Book Rankings</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-blue-700"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+          <div className="mt-20">
+            <BookFilters
+              title={title}
+              user={user}
+              category={category}
+              categories={categories}
+              onTitleChange={handleTitleChange}
+              onUserChange={handleUserChange}
+              onCategoryChange={handleCategoryChange}
+              onSearch={handleSearch}
+            />
+          </div>
+        </div>
 
-        {/* Paginación */}
+        <BooksList books={books} currentUserId={undefined} />
+
         <div className="flex justify-center space-x-4 mt-8 bg-gray-200 py-4 ">
           <button
             onClick={goToPreviousPage}
             disabled={page === 1}
             className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
           >
-            Anterior
+            Previous
           </button>
           <span className="flex items-center">
-            Página {page} de {totalPages}
+            Page {page} of {totalPages}
           </span>
           <button
             onClick={goToNextPage}
             disabled={page === totalPages}
             className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
           >
-            Siguiente
+            Next
           </button>
         </div>
       </div>

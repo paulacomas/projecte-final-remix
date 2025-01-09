@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Layout from "../components/Layout";
-import { Form } from "@remix-run/react";
-import { useLocation } from "@remix-run/react";
+import { Form, useLocation } from "@remix-run/react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Notification from "~/components/Notification";
 
@@ -32,20 +31,19 @@ export default function Login() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json(); // Aquí obtenemos el mensaje de error del backend
-        throw new Error(errorData.message || "Login failed"); // Manejamos el error correctamente
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
       }
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
 
       if (data.user.rol === "admin") {
-        navigate("/admin/books"); // Redirigir a admin/books si es "user"
+        navigate("/admin/books");
       } else {
-        navigate("/"); // Redirigir a la página principal para otros roles
+        navigate("/");
       }
     } catch (err: any) {
-      // Mostrar un mensaje de error más detallado
       setError(err.message || "An error occurred during login");
     }
   };
@@ -55,8 +53,8 @@ export default function Login() {
       <Layout />
       <main className="flex flex-col items-center justify-center flex-1 py-12">
         <Notification
-          successMessage={successMessage}
-          errorMessage={errorMessage}
+          successMessage={successMessage || undefined}
+          errorMessage={errorMessage || undefined}
         />
         <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-8 space-y-6">
           <h2 className="text-2xl font-bold mb-4">Login</h2>
@@ -64,8 +62,9 @@ export default function Login() {
           {error && <p className="text-red-500">{error}</p>}
           <Form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium">Email:</label>
+              <label htmlFor="email" className="block text-sm font-medium">Email:</label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -74,8 +73,9 @@ export default function Login() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium">Password:</label>
+              <label htmlFor="password" className="block text-sm font-medium">Password:</label>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -85,7 +85,7 @@ export default function Login() {
             </div>
             <button
               type="submit"
-              className="w-full bg-blue-500 text-white rounded py-2 hover:bg-blue-600"
+              className="w-full bg-blue-700 text-white rounded py-2 hover:bg-blue-800"
             >
               Login
             </button>

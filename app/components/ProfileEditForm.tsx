@@ -1,4 +1,12 @@
-import { Form } from "@remix-run/react";
+import { Form, Link } from "@remix-run/react";
+import { useState } from "react";
+import {
+  validateAge,
+  validateEmail,
+  validateName,
+  validateSchoolYear,
+  validateSurname,
+} from "~/util/validations";
 
 interface User {
   id: string;
@@ -7,19 +15,84 @@ interface User {
   email: string;
   age?: number;
   school_year?: string;
-  profile_image?: string; // Asumimos que el valor de la imagen es una URL
+  profile_image?: string;
 }
 
 interface ProfileEditFormProps {
   user: User;
 }
 
+const courses = [
+  "1ESO",
+  "2ESO",
+  "3ESO",
+  "4ESO",
+  "1BACH",
+  "2BACH",
+  "1CICLES",
+  "2CICLES",
+  "3CICLES",
+];
+
 export default function ProfileEditForm({ user }: ProfileEditFormProps) {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const surname = formData.get("surname") as string;
+    const email = formData.get("email") as string;
+    const age = formData.get("age") as string;
+    const schoolYear = formData.get("school_year") as string;
+
+    const nameError = validateName(name);
+    if (nameError) {
+      setError(nameError);
+      return;
+    }
+
+    const surnameError = validateSurname(surname);
+    if (surnameError) {
+      setError(surnameError);
+      return;
+    }
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
+    const ageError = validateAge(age);
+    if (ageError) {
+      setError(ageError);
+      return;
+    }
+
+    const schoolYearError = validateSchoolYear(schoolYear);
+    if (schoolYearError) {
+      setError(schoolYearError);
+      return;
+    }
+
+    e.currentTarget.submit();
+  };
   return (
     <div>
-      <h2>Edit Profile</h2>
-      <Form method="post" className="space-y-4" encType="multipart/form-data">
-        {/* Name field */}
+      <Form
+        method="post"
+        className="space-y-4"
+        encType="multipart/form-data"
+        onSubmit={handleSubmit}
+      >
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+
+        <h2 className="text-2xl font-bold mb-4">Edit profile</h2>
+
         <div>
           <label htmlFor="name" className="block">
             Name
@@ -33,7 +106,6 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           />
         </div>
 
-        {/* Surname field */}
         <div>
           <label htmlFor="surname" className="block">
             Surname
@@ -47,7 +119,6 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           />
         </div>
 
-        {/* Email field */}
         <div>
           <label htmlFor="email" className="block">
             Email
@@ -61,7 +132,6 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           />
         </div>
 
-        {/* Age field */}
         <div>
           <label htmlFor="age" className="block">
             Age
@@ -75,21 +145,24 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           />
         </div>
 
-        {/* School Year field */}
         <div>
           <label htmlFor="school_year" className="block">
             School Year
           </label>
-          <input
-            type="text"
+          <select
             id="school_year"
             name="school_year"
             defaultValue={user.school_year ?? ""}
             className="border px-4 py-2 rounded-md w-full"
-          />
+          >
+            {courses.map((course) => (
+              <option key={course} value={course}>
+                {course}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Profile image upload */}
         <div>
           <label htmlFor="profile_image" className="block">
             Profile Image
@@ -100,7 +173,7 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
             name="profile_image"
             className="border px-4 py-2 rounded-md w-full"
           />
-          {/* If there is a profile image, display it */}
+
           {user.profile_image && (
             <div className="mt-2">
               <img
@@ -112,12 +185,20 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           )}
         </div>
 
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded-md"
-        >
-          Save Changes
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="submit"
+            className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Save
+          </button>
+          <Link
+            to=".."
+            className="py-2 px-4 bg-gray-300 text-black rounded hover:bg-gray-400"
+          >
+            Cancel
+          </Link>
+        </div>
       </Form>
     </div>
   );

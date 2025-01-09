@@ -7,7 +7,7 @@ import {
   validateAuthor,
   validateGender,
   validateReview,
-} from "../util/validations"; // Importar las funciones de validación
+} from "../util/validations";
 
 export default function PublishBookPage() {
   const [formData, setFormData] = useState({
@@ -17,14 +17,13 @@ export default function PublishBookPage() {
     review: "",
     gender: "",
     author: "",
-    image_book: null,
+    image_book: null as File | null,
   });
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -35,10 +34,12 @@ export default function PublishBookPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFormData((prev) => ({
-        ...prev,
-        image_book: e.target.files[0],
-      }));
+      if (e.target.files && e.target.files[0]) {
+        setFormData((prev) => ({
+          ...prev,
+          image_book: e.target.files ? e.target.files[0] : null,
+        }));
+      }
     }
   };
 
@@ -90,15 +91,15 @@ export default function PublishBookPage() {
       });
 
       if (!response.ok) {
-        navigate(`/books/add?error=Error%20al%20publicar%20el%20libro`);
+        navigate(`/books/add?error=Error%20publishing%20the%20book`);
         throw new Error("Failed to publish the book");
       }
 
       const data = await response.json();
 
       navigate(
-        `/books/details/${data.data.id}?success=Libro%20publicado%20correctamente`
-      ); // Redirigir al detalle del libro
+        `/books/details/${data.data.id}?success=Book%20published%20successfully`
+      );
 
       setFormData({
         title: "",
@@ -110,30 +111,28 @@ export default function PublishBookPage() {
         image_book: null,
       });
     } catch (error) {
-      navigate(`/books/add?error=Error%20al%20publicar%20el%20libro`);
+      navigate(`/books/add?error=Error%20publishing%20the%20book`);
       console.error("Error publishing book:", error);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Layout />
-        </nav>
-      </header>
+      <Layout />
       <div className="container mx-auto py-12">
-        <h1 className="text-3xl font-bold mb-8">Publish a Book</h1>
+        <h1 className="text-4xl font-extrabold p-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+          Publish a Book
+        </h1>
         {error && <div className="text-red-500 mb-4">{error}</div>}
-        {successMessage && (
-          <div className="text-green-500 mb-4">{successMessage}</div>
-        )}
         <form
           onSubmit={handleSubmit}
           className="bg-white p-8 rounded-lg shadow-lg"
         >
           <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label
+              htmlFor="title"
+              className="block text-gray-700 font-medium mb-2"
+            >
               Title
             </label>
             <input
@@ -146,20 +145,25 @@ export default function PublishBookPage() {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label
+              htmlFor="description"
+              className="block text-gray-700 font-medium mb-2"
+            >
               Description
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              required
               maxLength={1000}
               className="w-full h-32 border-gray-300 rounded-lg shadow-sm"
             ></textarea>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label
+              htmlFor="opinion"
+              className="block text-gray-700 font-medium mb-2"
+            >
               Opinion (optional)
             </label>
             <textarea
@@ -171,7 +175,10 @@ export default function PublishBookPage() {
             ></textarea>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label
+              htmlFor="review"
+              className="block text-gray-700 font-medium mb-2"
+            >
               Review (optional)
             </label>
             <select
@@ -200,7 +207,6 @@ export default function PublishBookPage() {
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              required
               className="w-full h-12 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             >
               <option value="">Select a gender</option>
@@ -211,7 +217,10 @@ export default function PublishBookPage() {
             </select>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label
+              htmlFor="author"
+              className="block text-gray-700 font-medium mb-2"
+            >
               Author
             </label>
             <input
@@ -219,13 +228,15 @@ export default function PublishBookPage() {
               name="author"
               value={formData.author}
               onChange={handleChange}
-              required
               maxLength={255}
               className="w-full h-12 border-gray-300 rounded-lg shadow-sm"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label
+              htmlFor="image_book"
+              className="block text-gray-700 font-medium mb-2"
+            >
               Book Image (optional)
             </label>
             <input
@@ -238,7 +249,7 @@ export default function PublishBookPage() {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600"
+            className="w-full bg-blue-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-800"
           >
             Publish
           </button>

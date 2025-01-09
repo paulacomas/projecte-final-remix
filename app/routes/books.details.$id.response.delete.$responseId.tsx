@@ -1,21 +1,25 @@
-// routes/admin/books/delete.$id.tsx
-import { ActionFunction, json, redirect } from "@remix-run/node";
-import { deleteReplyAdmin } from "~/data/data"; // Función para eliminar el libro
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { ActionFunction, redirect } from "@remix-run/node";
+import { deleteReplyAdmin } from "~/data/data";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const action: ActionFunction = async ({ request, params }) => {
   const { id, responseId } = params;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!responseId) {
+    throw new Error("id required");
+  }
+  if (!token) {
+    throw new Error("token required");
+  }
 
-  // Llamar a la función para eliminar el libro de la base de datos
   const response = await deleteReplyAdmin(responseId, token);
 
   if (!response.ok) {
-    const errorUrl = `/books/details/${id}?error=Error%20al%20eliminar%20la%20respuesta`;
+    const errorUrl = `/books/details/${id}?error=Error%20deleting%20the%20reply`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/books/details/${id}?success=Respuesta%20eliminada%20correctamente`;
+  const successUrl = `/books/details/${id}?success=Reply%20deleted%20successfully`;
   return redirect(successUrl);
 };

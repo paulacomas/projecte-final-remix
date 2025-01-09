@@ -11,8 +11,6 @@ import {
 import type { LinksFunction } from "@remix-run/node";
 
 import "./tailwind.css";
-import Notification from "./components/Notification";
-import { NotificationProvider } from "./contexts/NotificationContext";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -78,5 +76,14 @@ export function ErrorBoundary() {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <html lang="es">
+      <head>
+        <title>ReadIt!</title>
+      </head>
+      <body>
+        <Outlet />
+      </body>
+    </html>
+  );
 }

@@ -13,7 +13,6 @@ export const getAuthHeaders = () => {
 };
 
 export async function login({ email, password }: any) {
-  // 1. Comprovem si l'usuari existeix
   const response = await fetch("http://localhost/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

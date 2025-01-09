@@ -11,7 +11,7 @@ import {
   validateAge,
   validateSchoolYear,
   validateProfileImage,
-} from "~/util/validations"; // Importar las funciones de validación
+} from "~/util/validations"; 
 
 type FormData = {
   name: string;
@@ -23,6 +23,18 @@ type FormData = {
   school_year: string;
   image_profile: File | null;
 };
+
+const courses = [
+  "1ESO",
+  "2ESO",
+  "3ESO",
+  "4ESO",
+  "1BACH",
+  "2BACH",
+  "1CICLES",
+  "2CICLES",
+  "3CICLES",
+];
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -119,13 +131,14 @@ export default function RegisterPage() {
           {error && <p className="text-red-500 text-center">{error}</p>}
 
           <Form onSubmit={handleSubmit} method="post">
-            {/* Name Field */}
+
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Name
               </label>
               <input
                 type="text"
+                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
@@ -134,9 +147,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Surname Field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="surname" className="block text-sm font-medium text-gray-700">
                 Surname
               </label>
               <input
@@ -148,9 +160,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Email Field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
               <input
@@ -162,9 +173,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Password Field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
               <input
@@ -176,9 +186,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Confirm Password Field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
                 Confirm Password
               </label>
               <input
@@ -190,9 +199,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Age Field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="age" className="block text-sm font-medium text-gray-700">
                 Age
               </label>
               <input
@@ -204,34 +212,40 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* School Year Field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="school_year" className="block text-sm font-medium text-gray-700">
                 School Year
               </label>
-              <input
-                type="text"
+              <select
+                id="school_year"
                 name="school_year"
                 value={formData.school_year}
                 onChange={handleChange}
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
+                required
+              >
+                {courses.map((course) => (
+                  <option key={course} value={course}>
+                    {course}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Profile Image Field */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label htmlFor="image_profile" className="block text-sm font-medium text-gray-700">
                 Profile Image
               </label>
               <input
                 type="file"
+                id="image_profile"
                 name="image_profile"
                 onChange={handleChange}
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
 
-            {/* Submit Button */}
             <div className="mb-4">
               <button
                 type="submit"

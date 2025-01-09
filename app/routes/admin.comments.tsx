@@ -1,63 +1,142 @@
-import { LoaderFunction } from "@remix-run/node";
+import { LoaderFunctionArgs } from "@remix-run/node";
 import {
-  Form,
   json,
-  Link,
-  Outlet,
   useLoaderData,
   useSearchParams,
+  useNavigate,
+  Outlet,
 } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CommentsTable from "~/components/CommentsTable";
 import Navigation from "~/components/Layout";
 import Notification from "~/components/Notification";
 import { fetchComments, fetchCurrentUser } from "~/data/data";
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import CommentFilters from "~/components/CommentFilters";
 
-export async function loader({ request }) {
+
+export async function loader({ request }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
-  const user = await fetchCurrentUser(token);
-  console.log(user);
-  if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
+  if (!token) {
+    throw new Error("No token found");
   }
+  const user = await fetchCurrentUser(token);
+  if (user.rol !== "admin") {
+    throw new Error("You don't have permission");
+  }
+
+  const url = new URL(request.url);
+  const title = url.searchParams.get("title")?.toLowerCase() || "";
+  const userName = url.searchParams.get("user")?.toLowerCase() || "";
+  const content = url.searchParams.get("content")?.toLowerCase() || "";
+
   try {
     const comments = await fetchComments(token);
-    return json({ comments: comments.data }); // Retorna los usuarios para la vista
+
+    const filteredComments = comments.data.filter(
+      (comment: {
+        book: { title: string };
+        user: { name: string };
+        content: string;
+      }) => {
+        const matchesTitle =
+          !title || comment.book.title.toLowerCase().includes(title);
+        const matchesUser =
+          !userName || comment.user.name.toLowerCase().includes(userName);
+        const matchesContent =
+          !content || comment.content.toLowerCase().includes(content);
+        return matchesTitle && matchesUser && matchesContent;
+      }
+    );
+
+    return json({ comments: filteredComments });
   } catch (error) {
-    throw new Error("Error al cargar los comentarios");
+    throw new Error("Error loading comments");
   }
 }
 
 export default function AdminComments() {
-  const { comments, error } = useLoaderData();
+  const { comments } = useLoaderData<{
+    comments: Array<{
+      id: string;
+      book: { title: string };
+      user: { name: string };
+      content: string;
+    }>;
+  }>();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
   const errorMessage = searchParams.get("error");
 
-  if (error) {
-    return <div className="text-red-500">{data.error}</div>;
-  }
+  const [title, setTitle] = useState("");
+  const [user, setUser] = useState("");
+  const [content, setContent] = useState("");
+
+  const navigate = useNavigate();
+
+  const updateUrlWithFilters = (
+    newTitle: string,
+    newUser: string,
+    newContent: string
+  ) => {
+    const params = new URLSearchParams();
+    if (newTitle) params.set("title", newTitle);
+    if (newUser) params.set("user", newUser);
+    if (newContent) params.set("content", newContent);
+    navigate(`?${params.toString()}`);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    updateUrlWithFilters(newTitle, user, content);
+  };
+
+  const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUser = e.target.value;
+    setUser(newUser);
+    updateUrlWithFilters(title, newUser, content);
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newContent = e.target.value;
+    setContent(newContent);
+    updateUrlWithFilters(title, user, newContent);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Navigation />
-        </nav>
-      </header>
+      <Navigation />
 
-      <h1 className="text-2xl font-bold mb-4 m-4 p-4">Gestionar Comments</h1>
-      <Notification
-        successMessage={successMessage}
-        errorMessage={errorMessage}
+      <h1 className="text-4xl font-extrabold p-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+        Comments
+      </h1>
+
+      <CommentFilters
+        title={title}
+        user={user}
+        content={content}
+        onTitleChange={handleTitleChange}
+        onUserChange={handleUserChange}
+        onContentChange={handleContentChange}
+        onSearch={handleSearch}
       />
+
+      <Notification
+        successMessage={successMessage ?? undefined}
+        errorMessage={errorMessage ?? undefined}
+      />
+
       {comments.length === 0 ? (
-        <p>No hay comments disponibles.</p>
+        <p>No comments available.</p>
       ) : (
-        <CommentsTable comments={comments} /> // Componente de tabla para mostrar usuarios
+        <CommentsTable comments={comments} /> 
       )}
       <Outlet />
     </div>

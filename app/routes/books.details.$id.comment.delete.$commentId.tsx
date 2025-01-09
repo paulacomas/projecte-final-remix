@@ -1,22 +1,25 @@
-// routes/admin/books/delete.$id.tsx
-import { ActionFunction, json, redirect } from "@remix-run/node";
-import { deleteComment, fetchCurrentUser } from "~/data/data"; // Función para eliminar el libro
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { ActionFunction, redirect } from "@remix-run/node";
+import { deleteComment, fetchCurrentUser } from "~/data/data";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const action: ActionFunction = async ({ request, params }) => {
-  const { commentId, id } = params;
+  const { commentId, id } = params as { commentId: string; id: string };
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!token) {
+    const errorUrl = `/books/details/${id}?error=Authentication%20token%20not%20found`;
+    return redirect(errorUrl);
+  }
   const user = await fetchCurrentUser(token);
   console.log(user);
-  // Llamar a la función para eliminar el libro de la base de datos
+
   const response = await deleteComment(commentId, token);
 
   if (!response.ok) {
-    const errorUrl = `/books/details/${id}?error=Error%20al%20eliminar%20el%20comentario`;
+    const errorUrl = `/books/details/${id}?error=Error%20deleting%20the%20comment`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/books/details/${id}?success=Comentario%20eliminado%20correctamente`;
+  const successUrl = `/books/details/${id}?success=Comment%20deleted%20successfully`;
   return redirect(successUrl);
 };

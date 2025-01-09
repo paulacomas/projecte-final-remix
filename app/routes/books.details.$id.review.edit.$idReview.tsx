@@ -1,29 +1,37 @@
-// routes/admin/reviews/edit/$id.tsx
 import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import ReviewForm from "~/components/ReviewForm";
 import Modal from "~/components/Modal";
 import { fetchCurrentUser, fetchReviews } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
+interface Review {
+  id: number;
+  user_id: number;
+}
+
 export const loader: LoaderFunction = async ({ request, params }) => {
   const reviewId = params.idReview;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!token) {
+    throw new Error("Authentication token is missing");
+  }
   const reviews = await fetchReviews(token);
-  const review = reviews.data.find((r: any) => r.id === Number(reviewId));
+
+  const review = reviews.data.find((r: Review) => r.id === Number(reviewId));
   const user = await fetchCurrentUser(token);
   console.log(user);
 
   if (review.user_id !== user.id) {
-    throw new Error("No tienes permiso para editar este libro");
+    throw new Error("You do not have permission to edit this review");
   }
 
   if (!review) {
-    throw new Response("Reseña no encontrada", { status: 404 });
+    throw new Response("Review not found", { status: 404 });
   }
 
-  return review;
+  return review as { id: number; comment: string; score: number };
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -47,19 +55,24 @@ export const action: ActionFunction = async ({ request, params }) => {
   console.log(response);
 
   if (!response.ok) {
-    const errorUrl = `/books/details/${bookId}?error=Error%20al%20editar%20la%20review`;
+    const errorUrl = `/books/details/${bookId}?error=Error%20editing%20the%20review`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/books/details/${bookId}?success=Review%20editada%20correctamente`;
+  const successUrl = `/books/details/${bookId}?success=Review%20successfully%20edited`;
   return redirect(successUrl);
 };
 
 export default function EditReview() {
-  const review = useLoaderData();
+  const review = useLoaderData<{ id: number; comment: string; score: number }>();
+  const navigate = useNavigate();
+
+  function closeHandler() {
+    navigate("..");
+  }
 
   return (
-    <Modal>
+    <Modal onClose={closeHandler}>
       <ReviewForm review={review} />
     </Modal>
   );

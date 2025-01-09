@@ -4,7 +4,7 @@ import LoggedInNavigation from "./LoggedInNavigation";
 import AdminNavigation from "./AdminNavigator";
 
 export default function Navigation() {
-  const [userRole, setUserRole] = useState("loading"); // Estados: 'loading', 'guest', 'user', 'admin'
+  const [userRole, setUserRole] = useState("loading");
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -13,19 +13,19 @@ export default function Navigation() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Incluye el token en la cabecera
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
         if (response.ok) {
           const data = await response.json();
-          setUserRole(data.rol || "user"); // Asigna el rol devuelto por el backend
+          setUserRole(data.rol || "user");
         } else {
-          setUserRole("guest"); // Si no está autenticado o hay error, es 'guest'
+          setUserRole("guest");
         }
       } catch (error) {
         console.error("Error fetching user role:", error);
-        setUserRole("guest"); // Si hay un fallo, por defecto es 'guest'
+        setUserRole("guest");
       }
     };
 
@@ -33,11 +33,11 @@ export default function Navigation() {
   }, []);
 
   if (userRole === "loading") {
-    return <div>Loading...</div>; // Muestra un indicador de carga mientras se obtiene el rol
+    return <div>Loading...</div>;
   }
 
   return (
-    <nav className="container mx-auto p-4">
+    <nav>
       {userRole === "admin" ? (
         <AdminNavigation />
       ) : userRole === "user" ? (

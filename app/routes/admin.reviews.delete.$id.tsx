@@ -1,26 +1,30 @@
-// routes/admin/books/delete.$id.tsx
-import { ActionFunction, json, redirect } from "@remix-run/node";
-import { deleteReviewAdmin, fetchCurrentUser } from "~/data/data"; // Función para eliminar el libro
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { ActionFunction, redirect } from "@remix-run/node";
+import { deleteReviewAdmin, fetchCurrentUser } from "~/data/data";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const action: ActionFunction = async ({ request, params }) => {
   const { id } = params;
+  if (!id) {
+    throw new Error("No id found");
+  }
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!token) {
+    throw new Error("No token found");
+  }
   const user = await fetchCurrentUser(token);
   console.log(user);
   if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
+    throw new Error("You don't have permission");
   }
 
-  // Llamar a la función para eliminar el libro de la base de datos
   const response = await deleteReviewAdmin(id, token);
 
   if (!response.ok) {
-    const errorUrl = `/admin/reviews?error=Error%20al%20eliminar%20la%20review`;
+    const errorUrl = `/admin/reviews?error=Error%20deleting%20the%20review`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/admin/reviews?success=Review%20eliminada%20correctamente`;
+  const successUrl = `/admin/reviews?success=Review%20successfully%20deleted`;
   return redirect(successUrl);
 };

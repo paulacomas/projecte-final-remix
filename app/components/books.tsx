@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Form, Link, useNavigate } from "@remix-run/react";
-import Modal from "./Modal";
-import EditBookForm from "./EditBookForm";
-import Navigation from "./Layout";
-import { getSavedBooks, saveBook, unsaveBook, updateBook } from "~/data/data";
+import { getSavedBooks, saveBook, unsaveBook } from "~/data/data";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import StarRating from "./StarRating";
 
 interface Book {
   id: string;
@@ -13,6 +11,8 @@ interface Book {
   gender: string;
   image_book: string;
   user_id: string;
+  opinion?: string;
+  review?: number;
   user?: {
     id: string;
     name: string;
@@ -21,17 +21,14 @@ interface Book {
 
 interface BooksListProps {
   books: Book[];
-  currentUserId: string;
+  currentUserId: string | undefined;
 }
 
 export default function BooksList({ books, currentUserId }: BooksListProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [savedBooks, setSavedBooks] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch saved books for the user
     const fetchSavedBooks = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -68,24 +65,21 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
           updated.delete(bookId);
           return updated;
         });
-        navigate(".?success=Libro%20unsaved%20correctamente");
+        navigate(".?success=Book%20unsaved%20successfully");
       } else {
         const response = await saveBook(bookId, token);
-        console.log("Save response:", response); // Depuración
+        console.log("Save response:", response);
         setSavedBooks((prev) => new Set(prev).add(bookId));
-        navigate(".?success=Libro%20guardado%20correctamente");
+        navigate(".?success=Book%20saved%20successfully");
       }
     } catch (error: any) {
       console.error("Error toggling save book:", error.message);
-      navigate(".?error=Error%20al%20guardar");
+      navigate(".?error=Error%20saving%20book");
     }
   };
 
   return (
     <main className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6 pl-6">Books List</h1>
-
-      {/* Verificar si hay libros */}
       {books && books.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
           {books.map((book) => (
@@ -102,30 +96,43 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
               <p className="text-sm text-gray-600">{book.author}</p>
               <p className="text-sm text-gray-500">{book.gender}</p>
 
+              {book.opinion && (
+                <p className="mt-2 text-sm text-gray-700">
+                  <strong>Opinion: </strong> {book.opinion}
+                </p>
+              )}
+
+              {book.review && (
+                <p className="mt-2 text-sm text-gray-700 flex items-center">
+                  <strong className="mr-2">Rating:</strong>
+                  <StarRating score={book.review} />
+                </p>
+              )}
+
               {book.user && (
                 <p className="mt-2 text-sm text-gray-700">
                   Published by{" "}
                   <Link
                     to={`/profile/${book.user.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-900 hover:underline"
                   >
-                    {book.user.name}
+                    <strong>{book.user.name}</strong>
                   </Link>
                 </p>
               )}
 
-              <div className="mt-4 flex justify-between">
+              <div className="mt-4 flex flex-col sm:flex-row md:flex-col lg:flex-row justify-between items-center sm:items-start lg:space-x-4 w-full">
                 <Link
                   to={`/books/details/${book.id}`}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                  className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-900 text-center sm:w-auto w-full"
                 >
                   View Details
                 </Link>
                 {currentUserId === book.user_id && (
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                     <Link
                       to={`/books/details/${book.id}/edit`}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-900 text-center w-full sm:w-auto"
                     >
                       Edit
                     </Link>
@@ -133,21 +140,21 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
                       <input type="hidden" name="action" value="delete" />
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-900 text-center w-full sm:w-auto"
                       >
                         Delete
                       </button>
                     </Form>
                   </div>
                 )}
-                {/* Icono de guardar */}
+
                 <button
                   onClick={() => toggleSaveBook(book.id)}
                   className={`px-3 py-2 rounded-lg ${
                     savedBooks.has(book.id)
                       ? "bg-blue-500 text-white"
                       : "bg-gray-300 text-gray-700"
-                  }`}
+                  } text-center sm:w-auto w-full`}
                   title={savedBooks.has(book.id) ? "Saved" : "Save"}
                 >
                   {savedBooks.has(book.id) ? <FaBookmark /> : <FaRegBookmark />}
@@ -157,7 +164,7 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
           ))}
         </div>
       ) : (
-        <p>No hay libros aún.</p> // Mensaje si no hay libros
+        <p>No books available yet.</p>
       )}
     </main>
   );

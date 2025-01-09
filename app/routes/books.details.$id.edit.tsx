@@ -6,11 +6,10 @@ import {
   redirect,
 } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
-import { useState } from "react";
 import BookForm from "~/components/BookFormAdmin";
 import Modal from "~/components/Modal";
 import { fetchCurrentUser } from "~/data/data";
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { id } = params;
@@ -21,21 +20,24 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const response = await fetch(`http://localhost/api/books/${id}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${token}`, // Incluyendo el token en el header
+      Authorization: `Bearer ${token}`,
     },
   });
 
   if (!response.ok) {
-    throw new Error("Libro no encontrado");
+    throw new Error("Book not found");
   }
 
   const book = await response.json();
 
+  if (!token) {
+    throw new Error("Authentication token not found");
+  }
   const user = await fetchCurrentUser(token);
   console.log(user);
 
   if (book.data.user_id !== user.id) {
-    throw new Error("No tienes permiso para editar este libro");
+    throw new Error("You do not have permission to edit this book");
   }
 
   return book.data;
@@ -69,7 +71,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     review: Number(review),
     gender,
     author,
-    image_book, // Puede ser un string de la imagen o un File si fue subida
+    image_book,
   };
 
   const response = await fetch(`http://localhost/api/books/${id}`, {
@@ -86,20 +88,28 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 
   if (!response.ok) {
-    const errorUrl = `/books/details/${id}?error=Error%20al%20editar%20el%20libro`;
+    const errorUrl = `/books/details/${id}?error=Error%20editing%20the%20book`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/books/details/${id}?success=Libro%20editado%20correctamente`;
+  const successUrl = `/books/details/${id}?success=Book%20edited%20successfully`;
   return redirect(successUrl);
 };
 
 export default function EditBook() {
-  const book = useLoaderData();
+  const book = useLoaderData<{
+    id: number;
+    title: string;
+    description: string;
+    opinion: string;
+    gender: string;
+    review: string;
+    image_book: string;
+    author: string;
+  }>();
   const navigate = useNavigate();
 
   function closeHandler() {
-    // No volem navegar amb Link en aquest cas ("navigate programmatically")No fem servir Link perquè
     navigate("..");
   }
 

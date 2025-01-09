@@ -7,107 +7,138 @@ export const validateCommentContent = (content: string): string | null => {
     return "The comment content cannot exceed 500 characters.";
   }
 
-  return null; // Validation passed
+  return null;
 };
 
-// src/validations.ts
 
 export const validateReviewContent = (content: string): string | null => {
   if (!content.trim()) {
     return "Review content cannot be empty.";
   }
-  return null; // Return null if no error
+  return null;
 };
 
 export const validateReviewRating = (rating: number): string | null => {
   if (rating < 1 || rating > 5) {
     return "Rating must be between 1 and 5.";
   }
-  return null; // Return null if no error
+  return null;
 };
 
-// utils/validations.ts
 
-export const validateTitle = (title: string): string | null => {
-  if (!title.trim()) {
-    return "El título es obligatorio.";
+export function validateTitle(title: string) {
+  if (!title.trim() || typeof title !== "string" || title.length > 255) {
+    return "The title is required and must be a maximum of 255 characters.";
+  }
+  return null;
+}
+
+export function validateDescription(description: string) {
+  if (
+    !description ||
+    typeof description !== "string" ||
+    description.length > 1000
+  ) {
+    return "The description is required and must be a maximum of 1000 characters.";
+  }
+  return null;
+}
+
+export function validateOpinion(opinion: string | undefined) {
+  if (opinion && (typeof opinion !== "string" || opinion.length > 500)) {
+    return "The opinion cannot exceed 500 characters.";
+  }
+  return null;
+}
+
+export function validateReview(review: string | undefined) {
+  if (
+    review &&
+    (isNaN(Number(review)) || Number(review) < 1 || Number(review) > 5)
+  ) {
+    return "The review must be a number between 1 and 5.";
+  }
+  return null;
+}
+
+export function validateGender(gender: string) {
+  if (!gender || typeof gender !== "string" || gender.length > 255) {
+    return "The gender is required and must be a maximum of 255 characters.";
+  }
+  return null;
+}
+
+export function validateAuthor(author: string) {
+  if (!author || typeof author !== "string" || author.length > 255) {
+    return "The author is required and must be a maximum of 255 characters.";
+  }
+  return null;
+}
+
+export const validateName = (name: string) => {
+  if (!name) {
+    return "The name is required.";
+  }
+  if (name.length > 255) {
+    return "The name must not exceed 255 characters.";
   }
   return null;
 };
 
-export const validateAuthor = (author: string): string | null => {
-  if (!author.trim()) {
-    return "El autor es obligatorio.";
+export const validateSurname = (surname: string) => {
+  if (!surname) {
+    return "The surname is required.";
+  }
+  if (surname.length > 1000) {
+    return "The surname must not exceed 1000 characters.";
   }
   return null;
 };
 
-export const validateDescription = (description: string): string | null => {
-  if (!description.trim()) {
-    return "La descripción es obligatoria.";
+export const validateEmail = (email: string) => {
+  if (!email) {
+    return "The email is required.";
+  }
+  if (email.length > 500) {
+    return "The email must not exceed 500 characters.";
+  }
+  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!re.test(email)) {
+    return "The email must be valid.";
   }
   return null;
 };
 
-export const validateGender = (gender: string): string | null => {
-  if (!gender.trim()) {
-    return "El género es obligatorio.";
+export const validateAge = (age: string) => {
+  if (!age) {
+    return "The age is required.";
+  }
+  const ageNumber = Number(age);
+  if (isNaN(ageNumber) || ageNumber < 1 || ageNumber > 100) {
+    return "The age must be a number between 1 and 100.";
   }
   return null;
 };
 
-export const validateReview = (review: number): string | null => {
-  if (review < 1 || review > 5) {
-    return "La calificación debe ser entre 1 y 5.";
+export const validateSchoolYear = (schoolYear: string) => {
+  if (!schoolYear) {
+    return "The school year is required.";
+  }
+  if (schoolYear.length > 255) {
+    return "The school year must not exceed 255 characters.";
   }
   return null;
 };
 
-// utils/validations.ts
-
-export const validateName = (name: string): string | null => {
-  if (!name.trim()) {
-    return "El nombre es obligatorio.";
+export const validateRol = (rol: string) => {
+  if (!rol) {
+    return "The role is required.";
+  }
+  if (rol.length > 255) {
+    return "The role must not exceed 255 characters.";
   }
   return null;
 };
-
-export const validateSurname = (surname: string): string | null => {
-  if (!surname.trim()) {
-    return "El apellido es obligatorio.";
-  }
-  return null;
-};
-
-export const validateEmail = (email: string): string | null => {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!email.trim()) {
-    return "El correo electrónico es obligatorio.";
-  }
-  if (!emailRegex.test(email)) {
-    return "El correo electrónico no es válido.";
-  }
-  return null;
-};
-
-export const validateAge = (age: number | string): string | null => {
-  if (typeof age === "string" && !age.trim()) {
-    return "La edad es obligatoria.";
-  }
-  if (typeof age === "number" && (age <= 0 || age > 120)) {
-    return "La edad debe ser un número válido entre 1 y 120.";
-  }
-  return null;
-};
-
-export const validateSchoolYear = (schoolYear: string): string | null => {
-  if (!schoolYear.trim()) {
-    return "El año escolar es obligatorio.";
-  }
-  return null;
-};
-
-// utils/validations.ts
 
 export const validatePassword = (password: string): string | null => {
   if (!password.trim()) {

@@ -1,72 +1,172 @@
-import { LoaderFunction, json } from "@remix-run/node";
-import { Link, useLoaderData, Outlet, useSearchParams } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { LoaderFunction } from "@remix-run/node";
+import {
+  Link,
+  useLoaderData,
+  Outlet,
+  useSearchParams,
+  useNavigate,
+} from "@remix-run/react";
+import { useState } from "react";
+import BookFilters from "~/components/BookFilters";
 import BooksTable from "~/components/BooksTable";
 import Navigation from "~/components/Layout";
 import Notification from "~/components/Notification";
-import { fetchBooks, fetchCurrentUser } from "~/data/data"; // Asume que tienes un servicio para obtener libros
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies"; // Importar la cookie
+import { fetchBooks, fetchCurrentUser } from "~/data/data";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
-// Loader para obtener los libros
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
-  const user = await fetchCurrentUser(token);
-  console.log(user);
-  if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
+  if (!token) {
+    throw new Error("No token found");
   }
-  try {
-    const books = await fetchBooks();
+  const userCurrent = await fetchCurrentUser(token);
+  if (userCurrent.rol !== "admin") {
+    throw new Error("You don't have permission");
+  }
+  const url = new URL(request.url);
 
-    return json({ books: books.data });
+  const title = url.searchParams.get("title") || "";
+  const user = url.searchParams.get("user") || "";
+  const category = url.searchParams.get("category") || "";
+  try {
+    const response = await fetchBooks();
+
+    const data = await response.json();
+    let books = data.data;
+
+    if (title) {
+      books = books.filter((book: { title: string }) =>
+        book.title.toLowerCase().includes(title.toLowerCase())
+      );
+    }
+
+    if (user) {
+      books = books.filter((book: { user: { name: string } }) =>
+        book.user.name.toLowerCase().includes(user.toLowerCase())
+      );
+    }
+
+    if (category) {
+      books = books.filter(
+        (book: { gender: string }) =>
+          book.gender.toLowerCase() === category.toLowerCase()
+      );
+    }
+
+    return books;
   } catch (error) {
     throw new Error("Error fectching books");
   }
 };
 
 export default function AdminBooks() {
-  const { books, error } = useLoaderData();
+  interface User {
+    id: number;
+    name: string;
+  }
+
+  interface Book {
+    id: number;
+    title: string;
+    description: string;
+    opinion: string;
+    gender: string;
+    review: string;
+    image_book: string;
+    author: string;
+    user: User;
+  }
+
+  const books = useLoaderData<Book[]>();
   const [searchParams] = useSearchParams();
+  const [title, setTitle] = useState("");
+  const [user, setUser] = useState("");
+  const [category, setCategory] = useState("");
+  const navigate = useNavigate();
 
   const successMessage = searchParams.get("success");
   const errorMessage = searchParams.get("error");
 
-  if (error) {
-    return <div className="p-4 text-red-500">{error}</div>;
-  }
+  const categories = ["Fiction", "Non-Fiction", "Science", "Art"];
+
+  const updateUrlWithFilters = (
+    newTitle: string,
+    newUser: string,
+    newCategory: string,
+    newPage: number
+  ) => {
+    const queryParams = new URLSearchParams();
+    if (newTitle) queryParams.set("title", newTitle);
+    if (newUser) queryParams.set("user", newUser);
+    if (newCategory) queryParams.set("category", newCategory);
+    if (newPage) queryParams.set("page", newPage.toString());
+
+    navigate(`?${queryParams.toString()}`);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    updateUrlWithFilters(newTitle, user, category, 1);
+  };
+
+  const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUser = e.target.value;
+    setUser(newUser);
+    updateUrlWithFilters(title, newUser, category, 1);
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCategory = e.target.value;
+    setCategory(newCategory);
+    updateUrlWithFilters(title, user, newCategory, 1);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Navigation />
-        </nav>
-      </header>
+    <>
+      <div className="min-h-screen bg-gray-100 ">
+        <Navigation />
+        <div className="flex justify-between items-center mb-4 p-6">
+          <h1 className="text-4xl font-extrabold p-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+            Books
+          </h1>
+          <Link
+            to="/books/add"
+            className="py-2 px-4 bg-green-700 text-white font-semibold rounded-md hover:bg-green-800 transition"
+          >
+            Add New Book
+          </Link>
+        </div>
 
-      <h1 className="text-2xl font-bold mb-4 m-4 p-4">Gestionar Libros</h1>
-      <div className="flex gap-4 mb-4 m-4 p-4">
-        <Link
-          to="/books/add"
-          className="py-2 px-4 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600"
-        >
-          Agregar Nuevo Libro
-        </Link>
+        <BookFilters
+          title={title}
+          user={user}
+          category={category}
+          categories={categories}
+          onTitleChange={handleTitleChange}
+          onUserChange={handleUserChange}
+          onCategoryChange={handleCategoryChange}
+          onSearch={handleSearch}
+        />
+
+        <Notification
+          successMessage={successMessage ?? undefined}
+          errorMessage={errorMessage ?? undefined}
+        />
+
+        {books.length === 0 ? (
+          <p>No books available.</p>
+        ) : (
+          <BooksTable books={books} />
+        )}
+
+        <Outlet />
       </div>
-
-      <Notification
-        successMessage={successMessage}
-        errorMessage={errorMessage}
-      />
-
-      {books.length === 0 ? (
-        <p>No hay libros disponibles.</p>
-      ) : (
-        <BooksTable books={books} />
-      )}
-
-      {/* Aquí agregamos el Outlet para las rutas hijas */}
-      <Outlet />
-    </div>
+    </>
   );
 }

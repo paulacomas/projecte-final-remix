@@ -1,5 +1,5 @@
 import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import CommentEditForm from "~/components/CommentForm";
 import Modal from "~/components/Modal";
 import { fetchComments, fetchCurrentUser } from "~/data/data";
@@ -9,16 +9,21 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const commentId = params.id;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!token) {
+    throw new Error("Authentication token is missing");
+  }
   const comments = await fetchComments(token);
-  const comment = comments.data.find((c: any) => c.id === Number(commentId));
+  const comment = comments.data.find(
+    (c: { id: number; content: string; userId: number }) =>
+      c.id === Number(commentId)
+  );
   const user = await fetchCurrentUser(token);
-  console.log(user);
   if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
+    throw new Error("You don't have permission");
   }
 
   if (!comment) {
-    throw new Response("Comentario no encontrado", { status: 404 });
+    throw new Response("Comment not found", { status: 404 });
   }
 
   return comment;
@@ -42,20 +47,30 @@ export const action: ActionFunction = async ({ request, params }) => {
   });
 
   if (!response.ok) {
-    const errorUrl = `/admin/comments?error=Error%20al%20actualizar%20el%20comentario`;
+    const errorUrl = `/admin/comments?error=Error%20updating%20the%20comment`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/admin/comments?success=Comentario%20editado%20correctamente`;
+  const successUrl = `/admin/comments?success=Comment%20updated%20successfully`;
   return redirect(successUrl);
 };
 
 export default function EditComment() {
-  const comment = useLoaderData();
+  const comment = useLoaderData() as {
+    content: string;
+    user_id: number;
+    book_id: number;
+  };
+
+  const navigate = useNavigate();
+
+  function closeHandler() {
+    navigate("..");
+  }
 
   return (
     <div>
-      <Modal>
+      <Modal onClose={closeHandler}>
         <CommentEditForm comment={comment} />
       </Modal>
     </div>

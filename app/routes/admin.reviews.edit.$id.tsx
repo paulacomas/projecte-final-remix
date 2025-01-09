@@ -1,25 +1,33 @@
-// routes/admin/reviews/edit/$id.tsx
 import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import ReviewForm from "~/components/ReviewForm";
 import Modal from "~/components/Modal";
 import { fetchCurrentUser, fetchReviews } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+interface Review {
+  id: number;
+  comment: string;
+  score: number;
+}
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const reviewId = params.id;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!token) {
+    throw new Error("No token found");
+  }
   const user = await fetchCurrentUser(token);
   console.log(user);
   if (user.rol !== "admin") {
-    throw new Error("No tienes permiso");
+    throw new Error("You don't have permission");
   }
   const reviews = await fetchReviews(token);
-  const review = reviews.data.find((r: any) => r.id === Number(reviewId));
+
+  const review = reviews.data.find((r: Review) => r.id === Number(reviewId));
 
   if (!review) {
-    throw new Response("Reseña no encontrada", { status: 404 });
+    throw new Response("Review not found", { status: 404 });
   }
 
   return review;
@@ -45,19 +53,24 @@ export const action: ActionFunction = async ({ request, params }) => {
   console.log(response);
 
   if (!response.ok) {
-    const errorUrl = `/admin/reviews?error=Error%20al%20actualizar%20la%20`;
+    const errorUrl = `/admin/reviews?error=Error%20updating%20the%20review`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/admin/reviews?success=Review%20editada%20correctamente`;
+  const successUrl = `/admin/reviews?success=Review%20successfully%20updated`;
   return redirect(successUrl);
 };
 
 export default function EditReview() {
-  const review = useLoaderData();
+  const review = useLoaderData<Review>();
+  const navigate = useNavigate();
+
+  function closeHandler() {
+    navigate("..");
+  }
 
   return (
-    <Modal>
+    <Modal onClose={closeHandler}>
       <ReviewForm review={review} />
     </Modal>
   );

@@ -1,21 +1,24 @@
-// routes/admin/books/delete.$id.tsx
-import { ActionFunction, json, redirect } from "@remix-run/node";
-import { deleteReview } from "~/data/data"; // Función para eliminar el libro
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { ActionFunction, redirect } from "@remix-run/node";
+import { deleteReview } from "~/data/data";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const action: ActionFunction = async ({ request, params }) => {
-  const { idReview, id } = params;
+  const { idReview, id } = params as { idReview: string; id: string };
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
 
-  // Llamar a la función para eliminar el libro de la base de datos
-  const response = await deleteReview(idReview, token);
-
-  if (!response.ok) {
-    const errorUrl = `/books/details/${id}?error=Error%20al%20eliminar%20la%20review`;
+  if (!token) {
+    const errorUrl = `/books/details/${id}?error=Authentication%20token%20is%20missing`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/books/details/${id}?success=Review%20eliminada%20correctamente`;
+  const response = await deleteReview(idReview, token);
+
+  if (!response.ok) {
+    const errorUrl = `/books/details/${id}?error=Error%20deleting%20the%20review`;
+    return redirect(errorUrl);
+  }
+
+  const successUrl = `/books/details/${id}?success=Review%20successfully%20deleted`;
   return redirect(successUrl);
 };

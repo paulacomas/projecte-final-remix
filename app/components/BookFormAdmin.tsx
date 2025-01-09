@@ -1,4 +1,13 @@
-import { Form, Link, useNavigate } from "@remix-run/react";
+// components/BookFormAdmin.tsx
+import { Form, Link } from "@remix-run/react";
+import { useState } from "react";
+import {
+  validateTitle,
+  validateDescription,
+  validateGender,
+  validateAuthor,
+  validateReview,
+} from "~/util/validations"; // Importamos las funciones de validación
 
 interface BookFormProps {
   book: {
@@ -14,13 +23,61 @@ interface BookFormProps {
 }
 
 export default function BookFormAdmin({ book }: BookFormProps) {
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+
+    let validationError = validateTitle(formData.get("title") as string);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    validationError = validateDescription(
+      formData.get("description") as string
+    );
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    validationError = validateGender(formData.get("gender") as string);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    validationError = validateAuthor(formData.get("author") as string);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    validationError = validateReview(formData.get("review") as string);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    e.currentTarget.submit();
+  };
 
   return (
-    <Form method="post">
+    <Form method="post" onSubmit={handleSubmit}>
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+
+      <h2 className="text-2xl font-bold mb-4">
+        {book ? "Edit Book" : "Add Book"}
+      </h2>
+
       <div className="mb-4">
         <label htmlFor="title" className="block text-gray-700">
-          Título
+          Title
         </label>
         <input
           type="text"
@@ -28,24 +85,24 @@ export default function BookFormAdmin({ book }: BookFormProps) {
           name="title"
           defaultValue={book.title}
           className="w-full p-2 border border-gray-300 rounded"
-          required
         />
       </div>
+
       <div className="mb-4">
         <label htmlFor="description" className="block text-gray-700">
-          Descripción
+          Description
         </label>
         <textarea
           id="description"
           name="description"
           defaultValue={book.description}
           className="w-full p-2 border border-gray-300 rounded"
-          required
         />
       </div>
+
       <div className="mb-4">
         <label htmlFor="opinion" className="block text-gray-700">
-          Opinión
+          Opinion
         </label>
         <textarea
           id="opinion"
@@ -54,9 +111,10 @@ export default function BookFormAdmin({ book }: BookFormProps) {
           className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
+
       <div className="mb-4">
         <label htmlFor="gender" className="block text-gray-700">
-          Género
+          Genre
         </label>
         <input
           type="text"
@@ -67,9 +125,10 @@ export default function BookFormAdmin({ book }: BookFormProps) {
           required
         />
       </div>
+
       <div className="mb-4">
         <label htmlFor="review" className="block text-gray-700">
-          Reseña (1 a 5)
+          Review (1 to 5)
         </label>
         <input
           type="number"
@@ -81,9 +140,10 @@ export default function BookFormAdmin({ book }: BookFormProps) {
           className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
+
       <div className="mb-4">
         <label htmlFor="author" className="block text-gray-700">
-          Autor
+          Author
         </label>
         <input
           type="text"
@@ -94,19 +154,20 @@ export default function BookFormAdmin({ book }: BookFormProps) {
           required
         />
       </div>
-      <div className="mb-4 flex justify-between">
+
+      <div className="flex gap-4">
+        <button
+          type="submit"
+          className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Save Changes
+        </button>
         <Link
           to=".."
           className="py-2 px-4 bg-gray-300 text-black rounded hover:bg-gray-400"
         >
-          Cancelar
+          Cancel
         </Link>
-        <button
-          type="submit"
-          className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
-        >
-          Guardar Cambios
-        </button>
       </div>
     </Form>
   );

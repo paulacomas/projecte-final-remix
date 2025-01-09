@@ -50,9 +50,9 @@ export default function LoggedInNavigation() {
 
       localStorage.removeItem("token");
       document.cookie =
-        "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; samesite=lax;";
 
-      navigate("/login?success=Logout%20hecho%20correctamente");
+      navigate("/login?success=Logged%20out%20successfully");
     } catch (error) {
       console.error("Error logging out:", error);
     }
@@ -66,50 +66,120 @@ export default function LoggedInNavigation() {
 
     navigate(`/user-search?name=${searchQuery}`);
     setSearchOpen(false);
+    setErrorMessage(null);
   };
 
   return (
-    <div className="flex justify-between items-center p-2 bg-white">
-      {/* Contenedor de la barra de navegación */}
-      <div className="flex items-center gap-4 w-full justify-between md:w-auto">
-        {/* Enlace de Dashboard */}
-        <Link
-          to="/"
-          className="text-blue-500 font-bold text-xl sm:text-lg md:text-xl"
-        >
-          Dashboard
-        </Link>
+    <header className="bg-white shadow-md w-full">
+      <div className="flex justify-between items-center p-2 pl-10 pr-10">
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-4">
+            <img
+              src="/public/logo.png"
+              alt="Books Logo"
+              className="w-20 h-20"
+            />
+          </Link>
+        </div>
 
-        {/* Botón para abrir el menú en dispositivos móviles */}
         <button
-          className="md:hidden text-xl"
+          className="md:hidden text-2xl text-gray-600 focus:outline-none ml-auto"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle Menu"
         >
           {menuOpen ? "✖" : "☰"}
         </button>
+
+        <nav className="hidden md:flex gap-8 items-center">
+          {errorMessage && (
+            <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
+          )}
+          <div className="flex items-center gap-4">
+            {searchOpen ? (
+              <div className="flex items-center gap-2 border border-gray-300 p-2 rounded-md bg-white">
+                <input
+                  type="text"
+                  placeholder="Search user"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="outline-none flex-1"
+                />
+                <button
+                  onClick={handleSearch}
+                  className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
+                >
+                  Search
+                </button>
+                <button
+                  onClick={() => setSearchOpen(false)} // Cierra la barra al hacer clic
+                  className="text-gray-500 hover:text-red-500"
+                >
+                  <FontAwesomeIcon icon={faTimes} size="lg" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-2 text-gray-500 hover:text-blue-500"
+              >
+                <FontAwesomeIcon icon={faSearch} size="lg" />
+                <span>Search user</span>
+              </button>
+            )}
+          </div>
+
+          <Link
+            to="/my-books"
+            className="text-gray-700 font-medium hover:text-blue-500 transition"
+          >
+            My Books
+          </Link>
+          <Link
+            to="/books/add"
+            className="text-green-700 font-medium hover:text-green-900 transition"
+          >
+            Publish Book
+          </Link>
+          <Link
+            to="/saved-books"
+            className="text-blue-700 font-medium hover:text-blue-800 transition"
+          >
+            Saved Books
+          </Link>
+          {currentUser && currentUser.id && (
+            <Link to={`/profile/${currentUser.id}`} className="text-gray-600">
+              Profile
+            </Link>
+          )}
+          <button
+            onClick={handleLogout}
+            className="text-red-700 font-medium hover:underline transition"
+          >
+            Logout
+          </button>
+        </nav>
       </div>
 
-      {/* Menú desplegable en dispositivos móviles */}
+      {/* Menú desplegable móvil */}
       <div
         className={`${
           menuOpen ? "block" : "hidden"
-        } absolute top-16 left-0 right-0 bg-white md:hidden p-4`}
+        } md:hidden bg-white border-t shadow-md`}
       >
-        <div className="flex flex-col gap-4">
-          {/* Formulario de búsqueda */}
-          <div className="flex items-center gap-4 mb-4">
+        <nav className="flex flex-col gap-4 p-4">
+          <div className="flex items-center gap-2 border border-gray-300 p-2 rounded-md bg-white">
             <input
               type="text"
-              placeholder="Buscar usuario"
+              placeholder="Search user"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="p-2 border border-gray-300 rounded-md"
+              className="outline-none flex-1"
             />
             <button
               onClick={handleSearch}
               className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
             >
-              Buscar
+              Search
             </button>
             <button
               onClick={() => setSearchOpen(false)}
@@ -118,19 +188,21 @@ export default function LoggedInNavigation() {
               <FontAwesomeIcon icon={faTimes} size="lg" />
             </button>
           </div>
-
-          <Link to="/my-books" className="text-lg font-semibold">
+          <Link
+            to="/my-books"
+            className="text-gray-700 font-medium hover:text-blue-500 transition"
+          >
             My Books
           </Link>
           <Link
             to="/books/add"
-            className="text-green-500 font-medium hover:underline"
+            className="text-green-700 font-medium hover:text-green-900 transition"
           >
             Publish Book
           </Link>
           <Link
             to="/saved-books"
-            className="text-blue-500 font-medium hover:underline"
+            className="text-blue-700 font-medium hover:text-blue-900 transition"
           >
             Saved Books
           </Link>
@@ -141,81 +213,12 @@ export default function LoggedInNavigation() {
           )}
           <button
             onClick={handleLogout}
-            className="text-red-500 hover:underline"
+            className="text-red-700 font-medium hover:underline transition"
           >
             Logout
           </button>
-        </div>
+        </nav>
       </div>
-
-      {/* Menú de navegación siempre visible en pantallas grandes */}
-      <div className="hidden md:flex items-center gap-8">
-        {/* Links de navegación */}
-        <div className="flex items-center gap-4">
-          {/* Ícono de búsqueda */}
-          {searchOpen ? (
-            <div className="flex items-center gap-2 border border-gray-300 p-2 rounded-md bg-white">
-              <input
-                type="text"
-                placeholder="Buscar usuario"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="outline-none flex-1"
-              />
-              <button
-                onClick={handleSearch}
-                className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
-              >
-                Buscar
-              </button>
-              <button
-                onClick={() => setSearchOpen(false)} // Cierra la barra al hacer clic
-                className="text-gray-500 hover:text-red-500"
-              >
-                <FontAwesomeIcon icon={faTimes} size="lg" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 text-gray-500 hover:text-blue-500"
-            >
-              <FontAwesomeIcon icon={faSearch} size="lg" />
-              <span>Search Users</span>
-            </button>
-          )}
-
-          <Link to="/my-books" className="text-lg font-semibold">
-            My Books
-          </Link>
-        </div>
-
-        <div className="flex gap-4">
-          <Link
-            to="/books/add"
-            className="text-green-500 font-medium hover:underline"
-          >
-            Publish Book
-          </Link>
-          <Link
-            to="/saved-books"
-            className="text-blue-500 font-medium hover:underline"
-          >
-            Saved Books
-          </Link>
-          {currentUser && currentUser.id && (
-            <Link to={`/profile/${currentUser.id}`} className="text-gray-600">
-              Profile
-            </Link>
-          )}
-          <button
-            onClick={handleLogout}
-            className="text-red-500 hover:underline"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
+    </header>
   );
 }

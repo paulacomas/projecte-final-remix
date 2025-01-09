@@ -1,37 +1,43 @@
 // routes/admin/reviews/edit/$id.tsx
-import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
-import { useActionData, useLoaderData, useNavigation } from "@remix-run/react";
-import ReviewForm from "~/components/ReviewForm";
+import { ActionFunction, redirect } from "@remix-run/node";
+import { useNavigate} from "@remix-run/react";
 import Modal from "~/components/Modal";
-import { addComment, addReview, fetchReviews } from "~/data/data";
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { addComment } from "~/data/data";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import CommentForm from "~/components/CommentForm";
 
 export const action: ActionFunction = async ({ request, params }) => {
   const bookId = params.id;
+  if (!bookId) {
+    throw new Error("book id is required");
+  }
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
-
+  if (!token) {
+    throw new Error("token is required");
+  }
   const formData = await request.formData();
-  const comment = formData.get("content");
+  const comment = formData.get("content") as string;
   const response = await addComment(bookId, comment, token);
 
   if (!response.ok) {
-    const errorUrl = `/books/details/${bookId}?error=Error%20al%20añadir%20el%20comentario`;
+    const errorUrl = `/books/details/${bookId}?error=Error%20publishing%20the%20comment`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/books/details/${bookId}?success=Comentario%20añadido%20correctamente`;
+  const successUrl = `/books/details/${bookId}?success=Comment%20published%20successfully`;
   return redirect(successUrl);
 };
 
 export default function AddReview() {
-  const actionData = useActionData();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
+  const navigate = useNavigate();
+
+  function closeHandler() {
+    navigate("..");
+  }
 
   return (
-    <Modal>
+    <Modal onClose={closeHandler}>
       <CommentForm comment={undefined} />
     </Modal>
   );

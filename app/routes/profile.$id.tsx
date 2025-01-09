@@ -14,6 +14,7 @@ import Layout from "~/components/Layout";
 import { LoaderFunction } from "@remix-run/node";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Notification from "~/components/Notification";
+import BooksList from "~/components/books";
 
 export const loader: LoaderFunction = async ({ params, request }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -22,8 +23,11 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userData = await fetchUserById(params.id, token); // Cargar datos del usuario
-  const currentUser = await fetchCurrentUser(token); // Obtener datos del usuario actual
+  if (!params.id) {
+    throw new Error("User ID is required");
+  }
+  const userData = await fetchUserById(params.id, token);
+  const currentUser = await fetchCurrentUser(token);
 
   if (!userData || !currentUser) {
     throw new Error("Error fectching user");
@@ -33,8 +37,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 };
 
 export default function ProfilePage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
   const { userData, currentUser } = useLoaderData();
   const [searchParams] = useSearchParams();
 
@@ -42,40 +44,34 @@ export default function ProfilePage() {
   const errorMessage = searchParams.get("error");
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(false);
   }, []);
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
 
   const isCurrentUserProfile = currentUser.id === userData.id;
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Layout />
-        </nav>
-      </header>
+      <Layout />
       <main className="container mx-auto py-8 p-6">
         <Notification
-          successMessage={successMessage}
-          errorMessage={errorMessage}
+          successMessage={successMessage ?? undefined}
+          errorMessage={errorMessage ?? undefined}
         />
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center mb-6 p-6">
+        <div className="bg-white p-6 rounded-lg shadow-md relative">
+          <div className="flex flex-col sm:flex-row items-center mb-6 p-6">
             {/* Display user avatar if available */}
             {userData.image_profile ? (
               <img
                 src={`${userData.image_profile}`} // Assuming profile image path
                 alt={`${userData.name}'s Avatar`}
-                className="h-24 w-24 rounded-full mr-4"
+                className="h-24 w-24 rounded-full mb-4 sm:mb-0 sm:mr-4"
               />
             ) : (
-              <div className="h-24 w-24 rounded-full bg-gray-300 mr-4"></div>
+              <div className="h-24 w-24 rounded-full bg-gray-300 mb-4 sm:mb-0 sm:mr-4"></div>
             )}
 
             <div>
@@ -90,57 +86,22 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Display the books the user has published */}
-          {userData.books && userData.books.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-2xl font-semibold mb-2">Books Published</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {userData.books.map((book) => (
-                  <div
-                    key={book.id}
-                    className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg"
-                  >
-                    <img
-                      src={`${book.image_book}`} // Assuming book image path
-                      alt={book.title}
-                      className="h-48 w-full object-cover rounded-md mb-4"
-                    />
-                    <h4 className="text-lg font-medium">{book.title}</h4>
-                    <p className="text-sm text-gray-600">{book.author}</p>
-                    <p className="text-sm text-gray-500">{book.gender}</p>
-
-                    <div className="mt-4 flex justify-between">
-                      {/* Botón View Details para todos los usuarios */}
-                      <Link
-                        to={`/books/details/${book.id}`} // Use 'to' instead of 'href' for Remix's Link component
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Display Edit Profile button if it's the current user's profile */}
           {isCurrentUserProfile && (
-            <div className="mt-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center mt-6 sm:mt-8 sm:absolute sm:top-4 sm:right-4 space-y-4 sm:space-y-0 sm:space-x-2 pr-4">
               <Link
                 to={`edit`}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800"
               >
                 Edit Profile
               </Link>
               <Form method="post" action={`delete`} className="inline">
                 <button
                   type="submit"
-                  className="ml-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  className="ml-4 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800"
                   onClick={(e) => {
                     if (
                       !window.confirm(
-                        "¿Estás seguro de que deseas eliminar esta cuenta?"
+                        "Are you sure you want to delete this account?"
                       )
                     ) {
                       e.preventDefault();
@@ -150,6 +111,16 @@ export default function ProfilePage() {
                   Delete Account
                 </button>
               </Form>
+            </div>
+          )}
+
+          {/* Display the books the user has published */}
+          {userData.books && userData.books.length > 0 && (
+            <div>
+              <p className="text-4xl font-extrabold p-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+                Books published
+              </p>
+              <BooksList books={userData.books} currentUserId={userData.id} />
             </div>
           )}
         </div>

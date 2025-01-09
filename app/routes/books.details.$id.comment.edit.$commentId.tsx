@@ -1,26 +1,29 @@
 import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import CommentEditForm from "~/components/CommentForm";
 import Modal from "~/components/Modal";
 import { fetchComments, fetchCurrentUser } from "~/data/data";
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const commentId = params.commentId;
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
+  if (!token) {
+    throw new Error("Authentication token is missing");
+  }
   const comments = await fetchComments(token);
-  const comment = comments.data.find((c: any) => c.id === Number(commentId));
+  const comment = comments.data.find((c: { id: number; user_id: number; content: string }) => c.id === Number(commentId));
 
   const user = await fetchCurrentUser(token);
   console.log(user);
 
   if (comment.user_id !== user.id) {
-    throw new Error("No tienes permiso para editar este comentario");
+    throw new Error("You do not have permission to edit this comment");
   }
 
   if (!comment) {
-    throw new Response("Comentario no encontrado", { status: 404 });
+    throw new Response("Comment not found", { status: 404 });
   }
 
   return comment;
@@ -45,20 +48,25 @@ export const action: ActionFunction = async ({ request, params }) => {
   });
 
   if (!response.ok) {
-    const errorUrl = `/books/details/${bookId}?error=Error%20al%20editar%20el%20comentario`;
+    const errorUrl = `/books/details/${bookId}?error=Error%20editing%20the%20comment`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/books/details/${bookId}?success=Comentario%20editado%20correctamente`;
+  const successUrl = `/books/details/${bookId}?success=Comment%20edited%20successfully`;
   return redirect(successUrl);
 };
 
 export default function EditComment() {
-  const comment = useLoaderData();
+  const comment = useLoaderData() as { content: string; user_id: number; book_id: number };
+  const navigate = useNavigate();
+
+  function closeHandler() {
+    navigate("..");
+  }
 
   return (
     <div>
-      <Modal>
+      <Modal onClose={closeHandler}>
         <CommentEditForm comment={comment} />
       </Modal>
     </div>

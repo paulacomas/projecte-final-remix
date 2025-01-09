@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Form, Link } from "@remix-run/react";
 
 interface Reply {
@@ -37,25 +37,25 @@ const Replies: React.FC<RepliesProps> = ({
               <div className="mt-2 flex space-x-4">
                 <Link
                   to={`response/edit/${reply.id}`}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-900"
                 >
                   Edit
                 </Link>
                 <Form method="post" action={`response/delete/${reply.id}`}>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-900"
                     onClick={(e) => {
                       if (
                         !window.confirm(
-                          "¿Estás seguro de que deseas eliminar esta respuesta?"
+                          "Are you sure you want to delete this reply?"
                         )
                       ) {
                         e.preventDefault();
                       }
                     }}
                   >
-                    Eliminar
+                    Delete
                   </button>
                 </Form>
               </div>

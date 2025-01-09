@@ -24,20 +24,22 @@ import { ActionFunction, LoaderFunction } from "@remix-run/node";
 import Reviews from "~/components/Reviews";
 import Comments from "~/components/Comments";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
-import { BookDetails, Review, User } from "~/data/types";
+import { BookDetails, User } from "~/data/types";
 import Notification from "~/components/Notification";
+import StarRating from "~/components/StarRating";
 
-// Loader para cargar detalles del libro
-// Loader para cargar detalles del libro
 export const loader: LoaderFunction = async ({ request, params }) => {
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
 
   if (!token) {
-    return redirect("/login");
+    return redirect("/login?message=You%20need%20to%20be%20logged%20in");
   }
 
   try {
+    if (!params.id) {
+      throw new Error("Book ID is required");
+    }
     const book = await fetchBookDetails(params.id, token);
     const currentUser = await fetchCurrentUser(token);
     const savedBooksResponse = await getSavedBooks(token);
@@ -52,7 +54,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 };
 
-// Action para manejar actualizaciones y eliminación de libros
 export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   const actionType = formData.get("action");
@@ -62,15 +63,19 @@ export const action: ActionFunction = async ({ request, params }) => {
     return redirect("/login");
   }
 
+  if (!params.id) {
+    throw new Error("book id required");
+  }
+
   if (actionType === "delete") {
     try {
       const response = await deleteBook(params.id, token);
       if (!response.ok) {
-        const errorUrl = `/books/details/${params.id}?error=Error%20al%20eliminar%20el%20libro`;
+        const errorUrl = `/books/details/${params.id}?error=Error%20deleting%20the%20book`;
         return redirect(errorUrl);
       }
 
-      const successUrl = `/?success=Libro%20eliminado%20correctamente`;
+      const successUrl = `/?success=Book%20deleted%20successfully`;
       return redirect(successUrl);
     } catch (error) {
       return json({ error: "Error deleting the book" }, { status: 500 });
@@ -98,7 +103,7 @@ export default function BookDetailPage() {
   const errorMessage = searchParams.get("error");
 
   useEffect(() => {
-    // Asegurar que el estado inicial sea un Set
+
     setSavedBooks(new Set(savedBookIds));
   }, [savedBookIds]);
 
@@ -122,13 +127,13 @@ export default function BookDetailPage() {
         });
       } else {
         const response = await saveBook(bookId, token);
-        console.log("Save response:", response); // Depuración
+        console.log("Save response:", response);
         setSavedBooks((prev) => new Set(prev).add(bookId));
-        navigate(".?success=Libro%20guardado%20correctamente");
+        navigate(".?success=Book%20saved%20successfully");
       }
     } catch (error: any) {
       console.error("Error toggling save book:", error.message);
-      navigate(".?error=Error%20al%20guardar");
+      navigate(".?error=Error%20saving%20the%20book");
     }
   };
 
@@ -144,15 +149,11 @@ export default function BookDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Layout />
-        </nav>
-      </header>
+      <Layout />
       <main className="container mx-auto py-8 p-6">
         <Notification
-          successMessage={successMessage}
-          errorMessage={errorMessage}
+          successMessage={successMessage || undefined}
+          errorMessage={errorMessage || undefined}
         />
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h1 className="text-3xl font-semibold mb-4">{book.title}</h1>
@@ -160,17 +161,37 @@ export default function BookDetailPage() {
             <img
               src={book.image_book}
               alt={book.title}
-              className="h-48 w-48 object-cover rounded-lg mr-6"
+              className="h-72 w-48 object-cover rounded-lg mr-6"
             />
             <div>
               <p className="text-xl font-medium">{book.author}</p>
               <p className="text-gray-600">{book.gender}</p>
-              <p className="text-gray-600">
-                {new Date(book.created_at).toLocaleDateString()}
-              </p>
               <p className="text-lg text-gray-800 mt-4">{book.description}</p>
 
-              {/* Save button */}
+              {book.opinion && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold">Opinion:</h3>
+                  <p className="text-sm text-gray-700">{book.opinion}</p>
+                </div>
+              )}
+
+              {book.review && (
+                <p className="mt-2 text-sm text-gray-700 flex items-center">
+                  <StarRating score={book.review} />
+                </p>
+              )}
+
+              <p className="mt-2 text-sm text-gray-600">
+                Published on: {new Date(book.created_at).toLocaleDateString()}{" "}
+                by{" "}
+                <Link
+                  to={`/profile/${book.user.id}`} 
+                  className="font-semibold text-blue-700 hover:underline"
+                >
+                  {book.user.name}
+                </Link>
+              </p>
+
               <div className="mt-4 flex items-center">
                 <button
                   onClick={() => toggleSaveBook(book.id)}
@@ -192,7 +213,7 @@ export default function BookDetailPage() {
           <div className="flex space-x-4 mb-8">
             <Link
               to={`edit`}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-900"
             >
               Edit Book
             </Link>
@@ -200,7 +221,7 @@ export default function BookDetailPage() {
               <input type="hidden" name="action" value="delete" />
               <button
                 type="submit"
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-900"
               >
                 Delete Book
               </button>
@@ -211,7 +232,7 @@ export default function BookDetailPage() {
           <div className="flex justify-end mb-4">
             <Link
               to={`review/add`}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-900"
             >
               Add review
             </Link>
@@ -226,7 +247,7 @@ export default function BookDetailPage() {
           <div className="flex justify-end mb-4">
             <Link
               to={`comment/add`}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-900"
             >
               Add comment
             </Link>

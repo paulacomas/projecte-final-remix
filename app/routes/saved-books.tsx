@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import BooksList from "~/components/books";
 import Navigation from "~/components/Layout";
 
@@ -16,7 +16,6 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   try {
-    // Fetch saved books (just the book IDs and metadata)
     const res = await fetch("http://localhost/api/saved-books", {
       method: "GET",
       headers: {
@@ -31,7 +30,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
     const savedBooksData = await res.json();
 
-    // Fetch detailed information for each book based on the book_id
     const booksDetails = await Promise.all(
       savedBooksData.data.map(async (savedBook: any) => {
         const bookRes = await fetch(
@@ -51,7 +49,7 @@ export const loader: LoaderFunction = async ({ request }) => {
           );
         }
         const bookData = await bookRes.json();
-        return bookData.data; // Return book data with full details
+        return bookData.data;
       })
     );
 
@@ -63,7 +61,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function SavedBooksPage() {
-  const { savedBooks } = useLoaderData(); // Obtén los datos cargados por el loader
+  const { savedBooks } = useLoaderData();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
@@ -71,18 +69,18 @@ export default function SavedBooksPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Navigation />
-        </nav>
-      </header>
-      <Notification
-        successMessage={successMessage}
-        errorMessage={errorMessage}
-      />
-      <div>
+      <Navigation />
+
+      <div className="container mx-auto py-12">
+        <Notification
+          successMessage={successMessage ?? undefined}
+          errorMessage={errorMessage ?? undefined}
+        />
         {/* Pasa los savedBooks al componente BooksList */}
-        <BooksList books={savedBooks} />
+        <h1 className="text-4xl font-extrabold p-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+          Saved books
+        </h1>
+        <BooksList books={savedBooks} currentUserId={undefined} />
       </div>
       <Outlet />
     </div>

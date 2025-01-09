@@ -9,12 +9,12 @@ export interface Comment {
     id: number;
     name: string;
   };
-  user_id?: number; // Asegúrate de agregar esta propiedad si debe existir
+  user_id?: number;
   book_id?: number;
   content: string;
   created_at?: string;
   updated_at?: string;
-  replies?: Comment[]; // Add replies property
+  replies?: Comment[];
 }
 
 export interface Review {
@@ -23,7 +23,7 @@ export interface Review {
     id: number;
     name: string;
   };
-  user_id?: number; // Asegúrate de agregar esta propiedad si debe existir
+  user_id?: number;
   book_id?: number;
   score: number;
   comment: string;

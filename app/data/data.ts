@@ -1,4 +1,3 @@
-// data.ts
 export const fetchBookDetails = async (bookId: string, token: string) => {
   try {
     const response = await fetch(`http://localhost/api/books/${bookId}`, {
@@ -14,7 +13,7 @@ export const fetchBookDetails = async (bookId: string, token: string) => {
     }
 
     const data = await response.json();
-    return data.data; // Regresar los datos del libro
+    return data.data;
   } catch (error) {
     throw new Error("Error fetching book details");
   }
@@ -106,8 +105,6 @@ export const fetchBooksForUser = async (token: string) => {
   return response.json();
 };
 
-// En data/data.ts
-
 export const addReview = async (
   bookId: string,
   { rating, content }: { rating: number; content: string },
@@ -144,12 +141,12 @@ export const deleteReview = async (reviewId: string, token: string) => {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to delete the book");
+      throw new Error("Failed to delete the review");
     }
 
     return response;
   } catch (error) {
-    throw new Error("Error deleting the book");
+    throw new Error("Error deleting the review");
   }
 };
 
@@ -173,7 +170,7 @@ export const updateReview = async (
   console.log(response);
 
   if (!response.ok) {
-    throw new Error("Failed to add review");
+    throw new Error("Failed to update review");
   }
 
   return await response.json();
@@ -201,7 +198,7 @@ export const addComment = async (
   console.log(response);
 
   if (!response.ok) {
-    throw new Error("Failed to add review");
+    throw new Error("Failed to add comment");
   }
 
   return response;
@@ -217,11 +214,11 @@ export const deleteComment = async (commentId: string, token: string) => {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to delete the book");
+      throw new Error("Failed to delete the comment");
     }
     return response;
   } catch (error) {
-    throw new Error("Error deleting the book");
+    throw new Error("Error deleting the comment");
   }
 };
 
@@ -244,7 +241,7 @@ export const updateComment = async (
   console.log(response);
 
   if (!response.ok) {
-    throw new Error("Failed to add review");
+    throw new Error("Failed to update comment");
   }
 
   return await response.json();
@@ -271,7 +268,7 @@ export const addReply = async (
   );
 
   if (!responseFetch.ok) {
-    throw new Error("Failed to add review");
+    throw new Error("Failed to add reply");
   }
 
   return responseFetch;
@@ -299,7 +296,7 @@ export const updateReplay = async (
   console.log(responseFetch);
 
   if (!responseFetch.ok) {
-    throw new Error("Failed to add review");
+    throw new Error("Failed to update reply");
   }
 
   return await responseFetch.json();
@@ -318,14 +315,12 @@ export const deleteReplay = async (commentId: string, token: string) => {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to delete the book");
+      throw new Error("Failed to delete the reply");
     }
   } catch (error) {
-    throw new Error("Error deleting the book");
+    throw new Error("Error deleting the reply");
   }
 };
-
-// app/data.ts
 
 export async function fetchUserById(id: string, token: string) {
   try {
@@ -354,14 +349,13 @@ export const updateUser = async (
   try {
     const headers = new Headers();
     headers.append("Authorization", `Bearer ${token}`);
-    headers.append("Content-Type", "application/json"); // JSON para los datos del usuario
+    headers.append("Content-Type", "application/json");
 
     console.log("Sending the following data:", updatedUser);
 
-    // Enviar los datos del usuario en formato JSON
     const response = await fetch(`http://localhost/api/profile`, {
       method: "PUT",
-      body: JSON.stringify(updatedUser), // Datos del usuario en JSON
+      body: JSON.stringify(updatedUser),
       headers: headers,
     });
 
@@ -392,10 +386,9 @@ export const deleteUser = async (token: string) => {
       },
     });
 
-    const text = await response.text(); // Get the raw response text
+    const text = await response.text();
 
     if (!response.ok) {
-      // Log the raw HTML response
       console.error("Error response:", text);
       throw new Error("Failed to delete the account.");
     }
@@ -456,11 +449,10 @@ export async function fetchBooks() {
       throw new Error(`Failed to fetch books: ${res.statusText}`);
     }
 
-    return await res.json();
+    return res;
   } catch (error) {
-    // Maneja cualquier error que ocurra durante la solicitud o en la transformación de la respuesta
     console.error("Error fetching books:", error);
-    throw error; // Lanza el error nuevamente para que pueda ser manejado en el lugar donde se llama la función
+    throw error;
   }
 }
 
@@ -497,7 +489,7 @@ export async function fetchUsers(token: string) {
     }
 
     const data = await response.json();
-    return data; // Asume que el API devuelve un array de usuarios
+    return data;
   } catch (error) {
     console.error("Error en fetchUsers:", error);
     throw error;
@@ -512,14 +504,13 @@ export const updateUserAdmin = async (
   try {
     const headers = new Headers();
     headers.append("Authorization", `Bearer ${token}`);
-    headers.append("Content-Type", "application/json"); // JSON para los datos del usuario
+    headers.append("Content-Type", "application/json");
 
     console.log("Sending the following data:", updatedUser);
 
-    // Enviar los datos del usuario en formato JSON
     const response = await fetch(`http://localhost/api/admin/users/${id}`, {
       method: "PUT",
-      body: JSON.stringify(updatedUser), // Datos del usuario en JSON
+      body: JSON.stringify(updatedUser),
       headers: headers,
     });
 
@@ -569,14 +560,13 @@ export async function fetchComments(token: string) {
     });
 
     if (!response.ok) {
-      throw new Error("Error al obtener los comentarios");
+      throw new Error("Failed to fetch the comments");
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error en fetchComments:", error);
-    return { error: "No se pudieron cargar los comentarios." };
+    throw new Error("Failed to fetch the comments");
   }
 }
 
@@ -610,7 +600,7 @@ export async function fetchReviews(token: string) {
   });
 
   if (!response.ok) {
-    throw new Error("Error al obtener las reseñas");
+    throw new Error("Error fetching reviews");
   }
 
   return response.json();
@@ -647,7 +637,7 @@ export async function fetchReplies(token: string) {
   });
 
   if (!response.ok) {
-    throw new Error("Error al obtener las respuestas");
+    throw new Error("Error fetching the replies");
   }
 
   return response.json();

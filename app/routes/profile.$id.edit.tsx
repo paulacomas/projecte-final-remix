@@ -3,7 +3,7 @@ import { json, redirect, useLoaderData, useNavigate } from "@remix-run/react";
 import { fetchCurrentUser, fetchUserById, updateUser } from "~/data/data";
 import ProfileEditForm from "~/components/ProfileEditForm";
 import { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { flashMessageCookie, getAuthTokenFromCookie } from "~/helpers/cookies";
+import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Modal from "~/components/Modal";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -17,9 +17,12 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   console.log(user.id + params.id);
 
   if (params.id != user.id) {
-    throw new Error("No tienes permiso para editar este libro");
+    throw new Error("You do not have permission to edit this profile");
   }
 
+  if (!params.id) {
+    throw new Error("User ID is missing");
+  }
   const userData = await fetchUserById(params.id, token);
   return json({ userData });
 };
@@ -38,24 +41,33 @@ export const action: ActionFunction = async ({ request, params }) => {
     image_profile: formData.get("image_profile"),
   };
 
+  if (!params.id) {
+    throw new Error("User ID is missing");
+  }
+  if (!token) {
+    throw new Error("token is missing");
+  }
   const response = await updateUser(params.id, updatedUser, token);
 
   if (!response.ok) {
-    const errorUrl = `/profile/${params.id}?error=Error%20al%20editae%20el%20perfil`;
+    const errorUrl = `/profile/${params.id}?error=Error%20editing%20profile`;
     return redirect(errorUrl);
   }
 
-  const successUrl = `/profile/${params.id}?success=Perfil%20editado%20correctamente`;
+  const successUrl = `/profile/${params.id}?success=Profile%20successfully%20edited`;
   return redirect(successUrl);
 };
 
 export default function EditProfilePage() {
   const { userData } = useLoaderData();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
+
+  function closeHandler() {
+    navigate("..");
+  }
 
   return (
-    <Modal>
+    <Modal onClose={closeHandler}>
       <ProfileEditForm user={userData} />
     </Modal>
   );

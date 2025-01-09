@@ -48,13 +48,13 @@ const Comments: React.FC<CommentsProps> = ({
             <div className="flex space-x-4">
               <button
                 onClick={() => toggleReplies(comment.id)}
-                className="text-blue-500 hover:underline"
+                className="text-blue-700 hover:underline"
               >
                 {openComment === comment.id ? "Hide Replies" : "Show Replies"}
               </button>
               <Link
                 to={`response/add/${comment.id}`}
-                className="px-4 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                className="px-4 py-1 bg-green-700 text-white rounded-lg hover:bg-green-900"
               >
                 Add Reply
               </Link>
@@ -67,25 +67,25 @@ const Comments: React.FC<CommentsProps> = ({
             <div className="mt-4 flex space-x-4">
               <Link
                 to={`comment/edit/${comment.id}`}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-900"
               >
                 Edit
               </Link>
               <Form method="post" action={`comment/delete/${comment.id}`}>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-900"
                   onClick={(e) => {
                     if (
                       !window.confirm(
-                        "¿Estás seguro de que deseas eliminar este comentarip?"
+                        "Are you sure you want to delete this comment?"
                       )
                     ) {
                       e.preventDefault();
                     }
                   }}
                 >
-                  Eliminar
+                  Delete
                 </button>
               </Form>
             </div>

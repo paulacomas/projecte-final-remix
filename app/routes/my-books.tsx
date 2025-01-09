@@ -1,13 +1,12 @@
 import {
   json,
   redirect,
-  LoaderFunction,
   useLoaderData,
   useSearchParams,
 } from "@remix-run/react";
-import Layout from "../components/Layout";
-import BooksList from "~/components/Books";
-import { fetchBooksForUser, fetchCurrentUser } from "~/data/data"; // Assuming fetchCurrentUser is available
+import { LoaderFunction } from "@remix-run/node";
+import BooksList from "~/components/books";
+import { fetchBooksForUser, fetchCurrentUser } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Navigation from "../components/Layout";
 import Notification from "~/components/Notification";
@@ -18,15 +17,18 @@ interface Book {
   author: string;
   gender: string;
   image_book: string;
-}
-
-interface User {
-  id: string;
+  user_id: string;
+  opinion?: string;
+  review?: number;
+  user?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface LoaderData {
   books: Book[];
-  userId: string; // We'll include userId in the loader data
+  userId: string;
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -38,12 +40,12 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   try {
-    const booksResponse = await fetchBooksForUser(token); // Fetch books for the user
-    const userResponse = await fetchCurrentUser(token); // Fetch current user data
+    const booksResponse = await fetchBooksForUser(token);
+    const userResponse = await fetchCurrentUser(token);
 
     return json({
-      books: booksResponse.data, // Books data
-      userId: userResponse.id, // User ID
+      books: booksResponse.data,
+      userId: userResponse.id,
     });
   } catch (error) {
     throw new Error("Error fectching books or user data");
@@ -51,7 +53,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function MyBooks() {
-  const { books, userId } = useLoaderData<LoaderData>(); // Get both books and userId from the loader
+  const { books, userId } = useLoaderData<LoaderData>();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
@@ -59,16 +61,15 @@ export default function MyBooks() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <nav className="container mx-auto p-4">
-          <Navigation />
-        </nav>
-      </header>
-      <Notification
-        successMessage={successMessage}
-        errorMessage={errorMessage}
-      />
-      <div>
+      <Navigation />
+      <div className="container mx-auto py-12">
+        <Notification
+          successMessage={successMessage ?? undefined}
+          errorMessage={errorMessage ?? undefined}
+        />
+        <h1 className="text-4xl font-extrabold p-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
+          My Books
+        </h1>
         <BooksList books={books} currentUserId={userId} />{" "}
       </div>
     </div>
