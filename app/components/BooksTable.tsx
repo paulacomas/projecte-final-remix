@@ -1,5 +1,6 @@
 import { Link, Form } from "@remix-run/react";
 import { Book } from "~/data/types";
+import StarRating from "./StarRating";
 
 interface BooksTableProps {
   books: Book[];
@@ -50,7 +51,7 @@ const BooksTable = ({ books }: BooksTableProps) => {
                 <td className="p-3 text-gray-600">{book.description}</td>
                 <td className="p-3 text-gray-600">{book.opinion}</td>
                 <td className="p-3 text-gray-600">{book.gender}</td>
-                <td className="p-3 text-gray-600">{book.review}</td>
+                <td className="p-3 text-gray-600"><StarRating score={book.review} /></td>
                 <td className="p-3 text-gray-600">{book.author}</td>
                 <td className="p-3">
                   {book.image_book ? (

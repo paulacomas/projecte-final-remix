@@ -173,7 +173,7 @@ export default function PublishBookPage() {
           <div>
             <label
               htmlFor="gender"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-gray-700 font-medium mb-2"
             >
               Gender
             </label>
@@ -182,7 +182,7 @@ export default function PublishBookPage() {
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              className="w-full h-12 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="w-full h-12 border-gray-300 rounded-lg shadow-sm"
             >
               <option value="">Select a gender</option>
               <option value="Fiction">Fiction</option>

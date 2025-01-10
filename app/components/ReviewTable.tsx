@@ -1,5 +1,6 @@
 import { Form, Link } from "@remix-run/react";
 import { Review } from "~/data/types";
+import StarRating from "./StarRating";
 
 interface ReviewsTableProps {
   reviews: Review[];
@@ -45,7 +46,9 @@ const ReviewsTable = ({ reviews }: ReviewsTableProps) => {
                     {review.book.title}
                   </Link>
                 </td>
-                <td className="p-3 text-gray-600">{review.score}</td>
+                <td className="p-3 text-gray-600">
+                  <StarRating score={review.score} />
+                </td>
                 <td className="p-3 text-gray-600">{review.comment}</td>
                 <td className="p-3">
                   <div className="flex gap-2 items-center">

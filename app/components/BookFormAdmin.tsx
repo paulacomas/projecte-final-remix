@@ -1,4 +1,6 @@
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
+import { useState } from "react";
+import { FaStar } from "react-icons/fa";
 import { ValidationErrors } from "~/data/types";
 
 interface BookFormProps {
@@ -15,9 +17,14 @@ interface BookFormProps {
 }
 
 export default function BookFormAdmin({ book }: BookFormProps) {
+  const [review, setReview] = useState<number>(book?.review || 0);
   const validationErrors = useActionData<ValidationErrors>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== "idle";
+  const handleStarClick = (index: number) => {
+    const newReview = index + 1;
+    setReview(newReview);
+  };
 
   return (
     <Form method="post">
@@ -64,7 +71,7 @@ export default function BookFormAdmin({ book }: BookFormProps) {
 
       <div className="mb-4">
         <label htmlFor="gender" className="block text-gray-700">
-          Genre
+          Gender
         </label>
         <select
           id="gender"
@@ -85,20 +92,7 @@ export default function BookFormAdmin({ book }: BookFormProps) {
         </select>
       </div>
 
-      <div className="mb-4">
-        <label htmlFor="review" className="block text-gray-700">
-          Review (1 to 5)
-        </label>
-        <input
-          type="number"
-          id="review"
-          name="review"
-          min="1"
-          max="5"
-          defaultValue={book.review}
-          className="w-full p-2 border border-gray-300 rounded"
-        />
-      </div>
+      <input type="hidden" name="review" value={review} />
 
       <div className="mb-4">
         <label htmlFor="author" className="block text-gray-700">
@@ -112,6 +106,29 @@ export default function BookFormAdmin({ book }: BookFormProps) {
           className="w-full p-2 border border-gray-300 rounded"
           required
         />
+      </div>
+      <div className="mb-4">
+        <label
+          htmlFor="review"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Review
+        </label>
+        <div className="flex space-x-2">
+          {[...Array(5)].map((_, index) => (
+            <button
+              type="button"
+              key={index}
+              onClick={() => handleStarClick(index)}
+              className={`w-8 h-8 ${
+                index < review ? "text-blue-500" : "text-gray-300"
+              }`}
+            >
+              <FaStar />
+            </button>
+          ))}
+        </div>
+        <p className="text-sm text-gray-500 mt-2">{review} / 5</p>
       </div>
       {validationErrors && (
         <ul className="mb-4 list-inside list-disc text-red-500">

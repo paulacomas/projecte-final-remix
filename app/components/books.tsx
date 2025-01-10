@@ -127,6 +127,15 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
                       <button
                         type="submit"
                         className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-900 text-center w-full sm:w-auto"
+                        onClick={(e) => {
+                          if (
+                            !window.confirm(
+                              "Are you sure you want to delete this book?"
+                            )
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
                       >
                         Delete
                       </button>
