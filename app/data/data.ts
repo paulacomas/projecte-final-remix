@@ -107,10 +107,9 @@ export const fetchBooksForUser = async (token: string) => {
 
 export const addReview = async (
   bookId: string,
-  { rating, content }: { rating: number; content: string },
+  { score, comment }: { score: number; comment: string },
   token: string
 ) => {
-  console.log(bookId, rating, content, token);
   const response = await fetch(`http://localhost/api/books/${bookId}/reviews`, {
     method: "POST",
     headers: {
@@ -118,8 +117,8 @@ export const addReview = async (
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      score: rating,
-      comment: content,
+      score: score,
+      comment: comment,
     }),
   });
   console.log(response);

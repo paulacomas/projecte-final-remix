@@ -4,6 +4,7 @@ import CommentEditForm from "~/components/CommentForm";
 import Modal from "~/components/Modal";
 import { fetchComments, fetchCurrentUser } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { validateCommentContent } from "~/util/validations";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const commentId = params.id;
@@ -36,6 +37,12 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   const formData = await request.formData();
   const content = formData.get("content");
+
+  try {
+    validateCommentContent(content);
+  } catch (error) {
+    return error;
+  }
 
   const response = await fetch(`http://localhost/api/comments/${commentId}`, {
     method: "PUT",

@@ -4,6 +4,7 @@ import Modal from "~/components/Modal";
 import ResponseForm from "~/components/ResponseEditForm";
 import { fetchCurrentUser, fetchReplies } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { validateCommentContent } from "~/util/validations";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const replyId = params.responseId;
@@ -38,6 +39,12 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   const formData = await request.formData();
   const response = formData.get("content");
+
+  try {
+      validateCommentContent(response);
+    } catch (error) {
+      return error;
+    }
 
   const responseFetch = await fetch(
     `http://localhost/api/responses/${responseId}`,

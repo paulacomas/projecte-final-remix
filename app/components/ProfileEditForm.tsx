@@ -1,4 +1,4 @@
-import { Form, Link } from "@remix-run/react";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
 import { useState } from "react";
 import {
   validateAge,
@@ -22,6 +22,10 @@ interface ProfileEditFormProps {
   user: User;
 }
 
+interface ValidationErrors {
+  [key: string]: string; // Clau string i valor string
+}
+
 const courses = [
   "1ESO",
   "2ESO",
@@ -35,62 +39,12 @@ const courses = [
 ];
 
 export default function ProfileEditForm({ user }: ProfileEditFormProps) {
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
-    const surname = formData.get("surname") as string;
-    const email = formData.get("email") as string;
-    const age = formData.get("age") as string;
-    const schoolYear = formData.get("school_year") as string;
-
-    const nameError = validateName(name);
-    if (nameError) {
-      setError(nameError);
-      return;
-    }
-
-    const surnameError = validateSurname(surname);
-    if (surnameError) {
-      setError(surnameError);
-      return;
-    }
-
-    const emailError = validateEmail(email);
-    if (emailError) {
-      setError(emailError);
-      return;
-    }
-
-    const ageError = validateAge(age);
-    if (ageError) {
-      setError(ageError);
-      return;
-    }
-
-    const schoolYearError = validateSchoolYear(schoolYear);
-    if (schoolYearError) {
-      setError(schoolYearError);
-      return;
-    }
-
-    e.currentTarget.submit();
-  };
+  const validationErrors = useActionData<ValidationErrors>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state !== "idle";
   return (
     <div>
-      <Form
-        method="post"
-        className="space-y-4"
-        encType="multipart/form-data"
-        onSubmit={handleSubmit}
-      >
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-
+      <Form method="post" className="space-y-4" encType="multipart/form-data">
         <h2 className="text-2xl font-bold mb-4">Edit profile</h2>
 
         <div>
@@ -185,12 +139,20 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           )}
         </div>
 
+        {validationErrors && (
+          <ul className="mb-4 list-inside list-disc text-red-500">
+            {Object.values(validationErrors).map((error: string) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        )}
+
         <div className="flex gap-4">
           <button
             type="submit"
             className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            Save
+            {isSubmitting ? "Saving..." : "Save"}
           </button>
           <Link
             to=".."

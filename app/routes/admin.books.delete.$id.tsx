@@ -1,6 +1,5 @@
-// routes/admin/books/delete.$id.tsx
 import { ActionFunction, redirect } from "@remix-run/node";
-import { deleteBookAdmin, fetchCurrentUser } from "~/data/data"; // Función para eliminar el libro
+import { deleteBookAdmin, fetchCurrentUser } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const action: ActionFunction = async ({ request, params }) => {

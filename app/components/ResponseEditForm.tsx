@@ -1,4 +1,4 @@
-import { Form, Link } from "@remix-run/react";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
 import { useState } from "react";
 import { validateCommentContent } from "~/util/validations";
 
@@ -10,28 +10,17 @@ interface CommentFormProps {
   };
 }
 
+interface ValidationErrors {
+  [key: string]: string; // Clau string i valor string
+}
+
 export default function ResponseForm({ reply }: CommentFormProps) {
-  const [error, setError] = useState<string | null>(null);
+  const validationErrors = useActionData<ValidationErrors>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state !== "idle";
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const content = formData.get("content") as string;
-
-    const validationError = validateCommentContent(content);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    e.currentTarget.submit();
-  };
   return (
-    <Form method="post" onSubmit={handleSubmit}>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
+    <Form method="post">
       <h2 className="text-2xl font-bold mb-4">
         {reply ? "Edit Reply" : "Add Reply"}
       </h2>
@@ -46,12 +35,20 @@ export default function ResponseForm({ reply }: CommentFormProps) {
           className="w-full p-2 border border-gray-300 rounded"
         />
       </div>
+      {validationErrors && (
+        <ul className="mb-4 list-inside list-disc text-red-500">
+          {Object.values(validationErrors).map((error: string) => (
+            <li key={error}>{error}</li>
+          ))}
+        </ul>
+      )}
       <div className="flex gap-4">
         <button
           type="submit"
+          disabled={isSubmitting}
           className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          Save
+          {isSubmitting ? "Saving..." : "Save"}
         </button>
         <Link
           to=".."

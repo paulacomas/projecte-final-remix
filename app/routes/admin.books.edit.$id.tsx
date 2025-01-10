@@ -10,6 +10,7 @@ import BookForm from "~/components/BookFormAdmin";
 import Modal from "~/components/Modal";
 import { fetchCurrentUser } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { validateBook } from "~/util/validations";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { id } = params;
@@ -54,13 +55,6 @@ export const action: ActionFunction = async ({ request, params }) => {
   const author = formData.get("author");
   const image_book = formData.get("image_book");
 
-  if (!title || !description || !gender || !author) {
-    return json(
-      { error: "All required fields must be filled." },
-      { status: 400 }
-    );
-  }
-
   const updatedBook = {
     title,
     description,
@@ -70,6 +64,14 @@ export const action: ActionFunction = async ({ request, params }) => {
     author,
     image_book,
   };
+
+  try {
+    // Validem les dades abans de fer la mutació
+    validateBook(updatedBook);
+  } catch (error) {
+    // En aquest cas ens volem assegurar que l'usuari vegi els errors que han provocat aquest error de validació
+    return error;
+  }
 
   const response = await fetch(`http://localhost/api/admin/books/${id}`, {
     method: "PUT",

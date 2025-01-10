@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom";
-import {
-  validateTitle,
-  validateDescription,
-  validateAuthor,
-  validateGender,
-  validateReview,
-} from "../util/validations";
+import { validateBook } from "../util/validations";
 
 export default function PublishBookPage() {
   const [formData, setFormData] = useState({
@@ -23,7 +17,9 @@ export default function PublishBookPage() {
   const navigate = useNavigate();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -46,27 +42,11 @@ export default function PublishBookPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const titleError = validateTitle(formData.title);
-    const descriptionError = validateDescription(formData.description);
-    const authorError = validateAuthor(formData.author);
-    const genderError = validateGender(formData.gender);
-    const reviewError = validateReview(formData.review);
-
-    if (
-      titleError ||
-      descriptionError ||
-      authorError ||
-      genderError ||
-      reviewError
-    ) {
-      setError(
-        titleError ||
-          descriptionError ||
-          authorError ||
-          genderError ||
-          reviewError
-      );
-      return;
+    try {
+      validateBook(formData);
+    } catch (error) {
+      setError(error);
+      return error;
     }
 
     const token = localStorage.getItem("token");
@@ -123,7 +103,6 @@ export default function PublishBookPage() {
         <h1 className="text-4xl font-extrabold p-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
           Publish a Book
         </h1>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
         <form
           onSubmit={handleSubmit}
           className="bg-white p-8 rounded-lg shadow-lg"
@@ -247,6 +226,14 @@ export default function PublishBookPage() {
               className="w-full h-12 border-gray-300 rounded-lg shadow-sm"
             />
           </div>
+
+          {error && (
+            <ul className="mb-4 list-inside list-disc text-red-500">
+              {Object.values(error).map((error: string) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          )}
           <button
             type="submit"
             className="w-full bg-blue-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-800"

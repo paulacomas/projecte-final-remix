@@ -5,6 +5,7 @@ import Modal from "~/components/Modal";
 import { addReply } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import ResponseForm from "~/components/ResponseEditForm";
+import { validateCommentContent } from "~/util/validations";
 
 export const action: ActionFunction = async ({ request, params }) => {
   const bookId = params.id;
@@ -16,9 +17,10 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
   const formData = await request.formData();
   const response = formData.get("content");
-  if (typeof response !== "string") {
-    const errorUrl = `/books/details/${bookId}?error=Invalid%20response%20content`;
-    return redirect(errorUrl);
+  try {
+    validateCommentContent(response);
+  } catch (error) {
+    return error;
   }
   const responseFetch = await addReply(commentId, response as string, token);
 

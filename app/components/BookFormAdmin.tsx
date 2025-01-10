@@ -1,13 +1,8 @@
-// components/BookFormAdmin.tsx
-import { Form, Link } from "@remix-run/react";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
 import { useState } from "react";
-import {
-  validateTitle,
-  validateDescription,
-  validateGender,
-  validateAuthor,
-  validateReview,
-} from "~/util/validations"; // Importamos las funciones de validación
+interface ValidationErrors {
+  [key: string]: string; // Clau string i valor string
+}
 
 interface BookFormProps {
   book: {
@@ -23,54 +18,12 @@ interface BookFormProps {
 }
 
 export default function BookFormAdmin({ book }: BookFormProps) {
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-
-    let validationError = validateTitle(formData.get("title") as string);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    validationError = validateDescription(
-      formData.get("description") as string
-    );
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    validationError = validateGender(formData.get("gender") as string);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    validationError = validateAuthor(formData.get("author") as string);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    validationError = validateReview(formData.get("review") as string);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    e.currentTarget.submit();
-  };
+  const validationErrors = useActionData<ValidationErrors>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state !== "idle";
 
   return (
-    <Form method="post" onSubmit={handleSubmit}>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-
+    <Form method="post">
       <h2 className="text-2xl font-bold mb-4">
         {book ? "Edit Book" : "Add Book"}
       </h2>
@@ -154,13 +107,20 @@ export default function BookFormAdmin({ book }: BookFormProps) {
           required
         />
       </div>
-
+      {validationErrors && (
+        <ul className="mb-4 list-inside list-disc text-red-500">
+          {Object.values(validationErrors).map((error: string) => (
+            <li key={error}>{error}</li>
+          ))}
+        </ul>
+      )}
       <div className="flex gap-4">
         <button
           type="submit"
+          disabled={isSubmitting}
           className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          Save Changes
+          {isSubmitting ? "Saving..." : "Save"}
         </button>
         <Link
           to=".."

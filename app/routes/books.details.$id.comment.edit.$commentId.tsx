@@ -4,6 +4,7 @@ import CommentEditForm from "~/components/CommentForm";
 import Modal from "~/components/Modal";
 import { fetchComments, fetchCurrentUser } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { validateCommentContent } from "~/util/validations";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const commentId = params.commentId;
@@ -13,7 +14,10 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     throw new Error("Authentication token is missing");
   }
   const comments = await fetchComments(token);
-  const comment = comments.data.find((c: { id: number; user_id: number; content: string }) => c.id === Number(commentId));
+  const comment = comments.data.find(
+    (c: { id: number; user_id: number; content: string }) =>
+      c.id === Number(commentId)
+  );
 
   const user = await fetchCurrentUser(token);
   console.log(user);
@@ -38,6 +42,12 @@ export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   const content = formData.get("content");
 
+  try {
+    validateCommentContent(content);
+  } catch (error) {
+    return error;
+  }
+
   const response = await fetch(`http://localhost/api/comments/${commentId}`, {
     method: "PUT",
     headers: {
@@ -57,7 +67,11 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function EditComment() {
-  const comment = useLoaderData() as { content: string; user_id: number; book_id: number };
+  const comment = useLoaderData() as {
+    content: string;
+    user_id: number;
+    book_id: number;
+  };
   const navigate = useNavigate();
 
   function closeHandler() {

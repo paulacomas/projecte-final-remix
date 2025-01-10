@@ -5,6 +5,7 @@ import ReviewForm from "~/components/ReviewForm";
 import Modal from "~/components/Modal";
 import { addReview } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { validateReviewInput } from "~/util/validations";
 
 export const action: ActionFunction = async ({ request, params }) => {
   const bookId = params.id;
@@ -19,7 +20,13 @@ export const action: ActionFunction = async ({ request, params }) => {
   const formData = await request.formData();
   const comment = formData.get("content");
   const score = formData.get("rating");
-  const reviewData = { content: comment as string, rating: Number(score) };
+  const reviewData = { comment: comment as string, score: Number(score) };
+  const input = { comment, score };
+  try {
+    validateReviewInput(input);
+  } catch (error) {
+    return error;
+  }
   const response = await addReview(bookId, reviewData, token);
 
   if (!response.ok) {

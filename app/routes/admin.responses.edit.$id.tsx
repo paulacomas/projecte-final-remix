@@ -4,6 +4,7 @@ import Modal from "~/components/Modal";
 import ResponseForm from "~/components/ResponseEditForm";
 import { fetchCurrentUser, fetchReplies } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { validateCommentContent } from "~/util/validations";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const replyId = params.id;
@@ -13,7 +14,9 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     throw new Error("Authentication token is missing");
   }
   const replies = await fetchReplies(token);
-  const reply = replies.data.find((c: { id: number }) => c.id === Number(replyId));
+  const reply = replies.data.find(
+    (c: { id: number }) => c.id === Number(replyId)
+  );
   const user = await fetchCurrentUser(token);
   console.log(user);
   if (user.rol !== "admin") {
@@ -34,6 +37,12 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   const formData = await request.formData();
   const response = formData.get("content");
+
+  try {
+    validateCommentContent(response);
+  } catch (error) {
+    return error;
+  }
 
   const responseFetch = await fetch(
     `http://localhost/api/responses/${responseId}`,
@@ -57,7 +66,11 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function EditResponse() {
-  const reply = useLoaderData() as { response: string; user_id: number; book_id: number };
+  const reply = useLoaderData() as {
+    response: string;
+    user_id: number;
+    book_id: number;
+  };
   const navigate = useNavigate();
 
   function closeHandler() {

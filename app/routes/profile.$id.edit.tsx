@@ -5,6 +5,7 @@ import ProfileEditForm from "~/components/ProfileEditForm";
 import { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Modal from "~/components/Modal";
+import { validateUser } from "~/util/validations";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -35,11 +36,17 @@ export const action: ActionFunction = async ({ request, params }) => {
     name: formData.get("name"),
     surname: formData.get("surname"),
     email: formData.get("email"),
-    age: parseInt(formData.get("age") as string, 10),
+    age: formData.get("age"),
     school_year: formData.get("school_year"),
     rol: formData.get("rol"),
     image_profile: formData.get("image_profile"),
   };
+
+  try {
+    validateUser(updatedUser);
+  } catch (error) {
+    return error;
+  }
 
   if (!params.id) {
     throw new Error("User ID is missing");

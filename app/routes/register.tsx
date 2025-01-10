@@ -2,16 +2,7 @@ import React, { useState } from "react";
 import { Form } from "@remix-run/react";
 import { useNavigate } from "react-router-dom";
 import Layout from "~/components/Layout";
-import {
-  validateName,
-  validateSurname,
-  validateEmail,
-  validatePassword,
-  validatePasswordConfirmation,
-  validateAge,
-  validateSchoolYear,
-  validateProfileImage,
-} from "~/util/validations"; 
+import { validateUserRegister } from "~/util/validations";
 
 type FormData = {
   name: string;
@@ -61,39 +52,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const nameError = validateName(formData.name);
-    const surnameError = validateSurname(formData.surname);
-    const emailError = validateEmail(formData.email);
-    const passwordError = validatePassword(formData.password);
-    const passwordConfirmationError = validatePasswordConfirmation(
-      formData.password,
-      formData.password_confirmation
-    );
-    const ageError = validateAge(formData.age);
-    const schoolYearError = validateSchoolYear(formData.school_year);
-    const profileImageError = validateProfileImage(formData.image_profile);
-
-    if (
-      nameError ||
-      surnameError ||
-      emailError ||
-      passwordError ||
-      passwordConfirmationError ||
-      ageError ||
-      schoolYearError ||
-      profileImageError
-    ) {
-      setError(
-        nameError ||
-          surnameError ||
-          emailError ||
-          passwordError ||
-          passwordConfirmationError ||
-          ageError ||
-          schoolYearError ||
-          profileImageError
-      );
-      return;
+    try {
+      validateUserRegister(formData);
+    } catch (error) {
+      setError(error);
+      return error;
     }
 
     const formDataToSend = new FormData();
@@ -128,12 +91,12 @@ export default function RegisterPage() {
         <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-8 space-y-6">
           <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
 
-          {error && <p className="text-red-500 text-center">{error}</p>}
-
           <Form onSubmit={handleSubmit} method="post">
-
             <div className="mb-4">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Name
               </label>
               <input
@@ -148,7 +111,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="surname" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="surname"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Surname
               </label>
               <input
@@ -161,7 +127,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <input
@@ -174,7 +143,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -187,7 +159,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password_confirmation"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <input
@@ -200,7 +175,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="age" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="age"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Age
               </label>
               <input
@@ -213,7 +191,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="mb-4">
-              <label htmlFor="school_year" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="school_year"
+                className="block text-sm font-medium text-gray-700"
+              >
                 School Year
               </label>
               <select
@@ -234,7 +215,10 @@ export default function RegisterPage() {
 
             {/* Profile Image Field */}
             <div className="mb-4">
-              <label htmlFor="image_profile" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="image_profile"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Profile Image
               </label>
               <input
@@ -245,6 +229,14 @@ export default function RegisterPage() {
                 className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
             </div>
+
+            {error && (
+              <ul className="mb-4 list-inside list-disc text-red-500">
+                {Object.values(error).map((error: string) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            )}
 
             <div className="mb-4">
               <button

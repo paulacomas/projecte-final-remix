@@ -1,10 +1,11 @@
 // routes/admin/reviews/edit/$id.tsx
 import { ActionFunction, redirect } from "@remix-run/node";
-import { useNavigate} from "@remix-run/react";
+import { useNavigate } from "@remix-run/react";
 import Modal from "~/components/Modal";
 import { addComment } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import CommentForm from "~/components/CommentForm";
+import { validateCommentContent } from "~/util/validations";
 
 export const action: ActionFunction = async ({ request, params }) => {
   const bookId = params.id;
@@ -18,6 +19,11 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
   const formData = await request.formData();
   const comment = formData.get("content") as string;
+  try {
+    validateCommentContent(comment);
+  } catch (error) {
+    return error;
+  }
   const response = await addComment(bookId, comment, token);
 
   if (!response.ok) {

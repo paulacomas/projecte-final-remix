@@ -4,6 +4,7 @@ import ReviewForm from "~/components/ReviewForm";
 import Modal from "~/components/Modal";
 import { fetchCurrentUser, fetchReviews } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
+import { validateReviewInput } from "~/util/validations";
 
 interface Review {
   id: number;
@@ -44,6 +45,14 @@ export const action: ActionFunction = async ({ request, params }) => {
   const comment = formData.get("content");
   const score = formData.get("rating");
 
+  const review = { comment, score };
+
+  try {
+    validateReviewInput(review);
+  } catch (error) {
+    return error;
+  }
+
   const response = await fetch(`http://localhost/api/reviews/${reviewId}`, {
     method: "PUT",
     headers: {
@@ -64,7 +73,11 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function EditReview() {
-  const review = useLoaderData<{ id: number; comment: string; score: number }>();
+  const review = useLoaderData<{
+    id: number;
+    comment: string;
+    score: number;
+  }>();
   const navigate = useNavigate();
 
   function closeHandler() {

@@ -1,4 +1,4 @@
-import { Form, Link } from "@remix-run/react";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
 import { useState } from "react";
 import {
   validateAge,
@@ -33,64 +33,17 @@ interface UserFormProps {
   };
 }
 
+interface ValidationErrors {
+  [key: string]: string; // Clau string i valor string
+}
+
 export default function UserForm({ user }: UserFormProps) {
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
-    const surname = formData.get("surname") as string;
-    const email = formData.get("email") as string;
-    const age = formData.get("age") as string;
-    const schoolYear = formData.get("school_year") as string;
-    const rol = formData.get("rol") as string;
-
-    const nameError = validateName(name);
-    if (nameError) {
-      setError(nameError);
-      return;
-    }
-
-    const surnameError = validateSurname(surname);
-    if (surnameError) {
-      setError(surnameError);
-      return;
-    }
-
-    const emailError = validateEmail(email);
-    if (emailError) {
-      setError(emailError);
-      return;
-    }
-
-    const ageError = validateAge(age);
-    if (ageError) {
-      setError(ageError);
-      return;
-    }
-
-    const schoolYearError = validateSchoolYear(schoolYear);
-    if (schoolYearError) {
-      setError(schoolYearError);
-      return;
-    }
-
-    const rolError = validateRol(rol);
-    if (rolError) {
-      setError(rolError);
-      return;
-    }
-
-    e.currentTarget.submit();
-  };
+  const validationErrors = useActionData<ValidationErrors>();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state !== "idle";
 
   return (
-    <Form method="post" onSubmit={handleSubmit}>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
+    <Form method="post">
       <h2 className="text-2xl font-bold mb-4">
         {user ? "Edit User" : "Add User"}
       </h2>
@@ -179,13 +132,20 @@ export default function UserForm({ user }: UserFormProps) {
           <option value="user">user</option>
         </select>
       </div>
-
+      {validationErrors && (
+        <ul className="mb-4 list-inside list-disc text-red-500">
+          {Object.values(validationErrors).map((error: string) => (
+            <li key={error}>{error}</li>
+          ))}
+        </ul>
+      )}
       <div className="flex gap-4">
         <button
           type="submit"
+          disabled={isSubmitting}
           className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
         >
-          Save
+          {isSubmitting ? "Saving..." : "Save"}
         </button>
         <Link
           to="/admin/users"
