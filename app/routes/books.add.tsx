@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { useNavigate } from "react-router-dom";
 import { validateBook } from "../util/validations";
+import { addBook } from "~/data/data";
+import { Form } from "@remix-run/react";
 
 export default function PublishBookPage() {
   const [formData, setFormData] = useState({
@@ -62,13 +64,7 @@ export default function PublishBookPage() {
         formDataToSend.append(key, value as string | Blob);
       });
 
-      const response = await fetch("http://localhost/api/books", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formDataToSend,
-      });
+      const response = await addBook(formDataToSend, token);
 
       if (!response.ok) {
         navigate(`/books/add?error=Error%20publishing%20the%20book`);
@@ -103,7 +99,7 @@ export default function PublishBookPage() {
         <h1 className="text-4xl font-extrabold p-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
           Publish a Book
         </h1>
-        <form
+        <Form
           onSubmit={handleSubmit}
           className="bg-white p-8 rounded-lg shadow-lg"
         >
@@ -193,6 +189,10 @@ export default function PublishBookPage() {
               <option value="Non-Fiction">Non-Fiction</option>
               <option value="Science">Science</option>
               <option value="Fantasy">Fantasy</option>
+              <option value="Fantasy">Romance</option>
+              <option value="Fantasy">Terror</option>
+              <option value="Fantasy">Action</option>
+              <option value="Fantasy">Other</option>
             </select>
           </div>
           <div className="mb-4">
@@ -240,7 +240,7 @@ export default function PublishBookPage() {
           >
             Publish
           </button>
-        </form>
+        </Form>
       </div>
     </div>
   );

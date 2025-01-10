@@ -12,6 +12,8 @@ import Navigation from "~/components/Layout";
 import Notification from "~/components/Notification";
 
 import type { LoaderFunction } from "@remix-run/node";
+import { FaArrowRight } from "react-icons/fa";
+import { fetchBooks } from "~/data/data";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
@@ -25,9 +27,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   const offset = (page - 1) * limit;
 
   try {
-    const response = await fetch("http://localhost/api/books", {
-      method: "GET",
-    });
+    const response = await fetchBooks();
     if (!response.ok) {
       throw new Error(`Failed to fetch books: ${response.statusText}`);
     }
@@ -78,7 +78,16 @@ export default function Index() {
   const successMessage = searchParams.get("success") || undefined;
   const errorMessage = searchParams.get("error") || undefined;
 
-  const categories = ["Fiction", "Non-Fiction", "Science", "Art"];
+  const categories = [
+    "Fiction",
+    "Non-Fiction",
+    "Science",
+    "Fantasy",
+    "Romance",
+    "Terror",
+    "Action",
+    "Other",
+  ];
 
   const updateUrlWithFilters = (
     newTitle: string,
@@ -155,20 +164,7 @@ export default function Index() {
                   className="mt-4 md:mt-0 px-6 py-3 bg-white text-blue-700 font-bold rounded-md shadow-md hover:bg-gray-100 transition-all flex items-center space-x-2"
                 >
                   <span>See Book Rankings</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-blue-700"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
+                  <FaArrowRight className="h-5 w-5 text-blue-700" />
                 </Link>
               </div>
             </div>

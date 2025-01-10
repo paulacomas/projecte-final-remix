@@ -1,17 +1,5 @@
 import { Form, Link } from "@remix-run/react";
-
-interface Review {
-  id: number;
-  user: {
-    name: string;
-  };
-  book: {
-    id: number;
-    title: string;
-  };
-  score: number;
-  comment: string;
-}
+import { Review } from "~/data/types";
 
 interface ReviewsTableProps {
   reviews: Review[];

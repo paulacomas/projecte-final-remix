@@ -10,21 +10,7 @@ import { fetchBooksForUser, fetchCurrentUser } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Navigation from "../components/Layout";
 import Notification from "~/components/Notification";
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  gender: string;
-  image_book: string;
-  user_id: string;
-  opinion?: string;
-  review?: number;
-  user?: {
-    id: string;
-    name: string;
-  };
-}
+import { Book } from "~/data/types";
 
 interface LoaderData {
   books: Book[];

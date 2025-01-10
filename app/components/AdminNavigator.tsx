@@ -1,35 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "@remix-run/react";
+import { FaBars, FaTimes } from "react-icons/fa";
+import { logout } from "~/data/data";
 
 export default function AdminNavigation() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token found");
-
-      const res = await fetch("http://localhost/api/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to log out");
-      }
-
-      localStorage.removeItem("token");
-      document.cookie =
-        "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
+    const success = await logout();
+    if (success) {
       navigate("/login?success=Logged%20out%20successfully");
-    } catch (error) {
-      console.error("Error logging out:", error);
+    } else {
+      console.error("Logout failed");
     }
   };
 
@@ -51,7 +34,7 @@ export default function AdminNavigation() {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle Menu"
         >
-          {menuOpen ? "✖" : "☰"}
+          {menuOpen ? <FaTimes /> : <FaBars />}
         </button>
 
         {/* Menú principal */}

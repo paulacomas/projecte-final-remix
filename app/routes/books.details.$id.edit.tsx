@@ -2,13 +2,13 @@
 import {
   ActionFunction,
   LoaderFunction,
-  json,
   redirect,
 } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import BookForm from "~/components/BookFormAdmin";
 import Modal from "~/components/Modal";
-import { fetchCurrentUser } from "~/data/data";
+import { fetchBookToEdit, fetchCurrentUser, updateBook } from "~/data/data";
+import { BookEdit } from "~/data/types";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { validateBook } from "~/util/validations";
 
@@ -18,12 +18,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const cookieHeader = request.headers.get("Cookie");
   const token = await getAuthTokenFromCookie(cookieHeader);
 
-  const response = await fetch(`http://localhost/api/books/${id}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await fetchBookToEdit(id, token);
 
   if (!response.ok) {
     throw new Error("Book not found");
@@ -76,18 +71,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     return error;
   }
 
-  const response = await fetch(`http://localhost/api/books/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(updatedBook),
-  });
-
-  if (!response.ok) {
-    return json({ error: "Error updating book" }, { status: 500 });
-  }
+  const response = await updateBook(id, updatedBook, token);
 
   if (!response.ok) {
     const errorUrl = `/books/details/${id}?error=Error%20editing%20the%20book`;
@@ -99,16 +83,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function EditBook() {
-  const book = useLoaderData<{
-    id: number;
-    title: string;
-    description: string;
-    opinion: string;
-    gender: string;
-    review: string;
-    image_book: string;
-    author: string;
-  }>();
+  const book = useLoaderData<BookEdit>();
   const navigate = useNavigate();
 
   function closeHandler() {

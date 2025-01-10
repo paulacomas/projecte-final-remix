@@ -7,19 +7,8 @@ export default function DefaultNavigation() {
       <div className="flex justify-between items-center p-2 pl-10 pr-20">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-4">
-            <img
-              src="/public/logo.png"
-              alt="Books Logo"
-              className="w-24 h-24"
-            />
+            <img src="logo.png" alt="Books Logo" className="w-24 h-24" />
           </Link>
-
-          <button
-            className="md:hidden text-2xl text-gray-600 focus:outline-none"
-            aria-label="Toggle Menu"
-          >
-            ☰
-          </button>
         </div>
 
         <nav className="hidden md:flex gap-8 items-center">

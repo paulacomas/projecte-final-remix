@@ -13,7 +13,7 @@ import Notification from "~/components/Notification";
 import { fetchComments, fetchCurrentUser } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import CommentFilters from "~/components/CommentFilters";
-
+import { Comment } from "~/data/types";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get("Cookie");
@@ -57,14 +57,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function AdminComments() {
-  const { comments } = useLoaderData<{
-    comments: Array<{
-      id: string;
-      book: { title: string };
-      user: { name: string };
-      content: string;
-    }>;
-  }>();
+  const { comments } = useLoaderData<{ comments: Comment[] }>();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
@@ -136,7 +129,7 @@ export default function AdminComments() {
       {comments.length === 0 ? (
         <p>No comments available.</p>
       ) : (
-        <CommentsTable comments={comments} /> 
+        <CommentsTable comments={comments} />
       )}
       <Outlet />
     </div>

@@ -1,21 +1,5 @@
 import { Link, Form } from "@remix-run/react";
-
-interface User {
-  id: number;
-  name: string;
-}
-
-interface Book {
-  id: number;
-  title: string;
-  description: string;
-  opinion: string;
-  gender: string;
-  review: string;
-  image_book: string;
-  author: string;
-  user: User;
-}
+import { Book } from "~/data/types";
 
 interface BooksTableProps {
   books: Book[];

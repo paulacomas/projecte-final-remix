@@ -1,17 +1,14 @@
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import { useState } from "react";
-interface ValidationErrors {
-  [key: string]: string; // Clau string i valor string
-}
+import { ValidationErrors } from "~/data/types";
 
 interface BookFormProps {
   book: {
-    id: number;
+    id: string;
     title: string;
     description: string;
     opinion: string;
     gender: string;
-    review: string;
+    review: number;
     image_book: string;
     author: string;
   };
@@ -69,14 +66,23 @@ export default function BookFormAdmin({ book }: BookFormProps) {
         <label htmlFor="gender" className="block text-gray-700">
           Genre
         </label>
-        <input
-          type="text"
+        <select
           id="gender"
           name="gender"
-          defaultValue={book.gender}
+          defaultValue={book.gender || ""}
           className="w-full p-2 border border-gray-300 rounded"
           required
-        />
+        >
+          <option value="">Select a gender</option>
+          <option value="Fiction">Fiction</option>
+          <option value="Non-Fiction">Non-Fiction</option>
+          <option value="Science">Science</option>
+          <option value="Fantasy">Fantasy</option>
+          <option value="Romance">Romance</option>
+          <option value="Terror">Terror</option>
+          <option value="Action">Action</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
 
       <div className="mb-4">
@@ -118,7 +124,7 @@ export default function BookFormAdmin({ book }: BookFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="py-2 px-4 bg-blue-700 text-white rounded hover:bg-blue-800"
         >
           {isSubmitting ? "Saving..." : "Save"}
         </button>

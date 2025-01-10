@@ -1,14 +1,13 @@
-// routes/admin/books/edit.$id.tsx
-import {
-  ActionFunction,
-  LoaderFunction,
-  json,
-  redirect,
-} from "@remix-run/node";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import BookForm from "~/components/BookFormAdmin";
 import Modal from "~/components/Modal";
-import { fetchCurrentUser } from "~/data/data";
+import {
+  fetchBookDetails,
+  fetchCurrentUser,
+  updateBookAdmin,
+} from "~/data/data";
+import { Book } from "~/data/types";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { validateBook } from "~/util/validations";
 
@@ -26,19 +25,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     throw new Error("You don't have permission");
   }
 
-  const response = await fetch(`http://localhost/api/books/${id}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Book not found");
-  }
-
-  const book = await response.json();
-  return book.data;
+  const response = await fetchBookDetails(id, token);
+  return response;
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -73,14 +61,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     return error;
   }
 
-  const response = await fetch(`http://localhost/api/admin/books/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(updatedBook),
-  });
+  const response = await updateBookAdmin(id, updatedBook, token);
 
   if (!response.ok) {
     const errorUrl = `/admin/books?error=Error%20updating%20the%20book`;
@@ -90,17 +71,6 @@ export const action: ActionFunction = async ({ request, params }) => {
   const successUrl = `/admin/books?success=book%20updated%20successfully`;
   return redirect(successUrl);
 };
-
-interface Book {
-  id: number;
-  title: string;
-  description: string;
-  opinion: string;
-  gender: string;
-  review: string;
-  image_book: string;
-  author: string;
-}
 
 export default function EditBook() {
   const book = useLoaderData<Book>();

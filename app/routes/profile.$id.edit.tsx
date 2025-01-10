@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { json, redirect, useLoaderData, useNavigate } from "@remix-run/react";
 import { fetchCurrentUser, fetchUserById, updateUser } from "~/data/data";
 import ProfileEditForm from "~/components/ProfileEditForm";
@@ -6,6 +5,7 @@ import { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Modal from "~/components/Modal";
 import { validateUser } from "~/util/validations";
+import { User } from "~/data/types";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -66,7 +66,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function EditProfilePage() {
-  const { userData } = useLoaderData();
+  const { userData } = useLoaderData<{ userData: User }>();
   const navigate = useNavigate();
 
   function closeHandler() {

@@ -6,6 +6,8 @@ import { json, LoaderFunction } from "@remix-run/node";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { Outlet, useLoaderData, useSearchParams } from "@remix-run/react";
 import Notification from "~/components/Notification";
+import { getSavedBooks } from "~/data/data";
+import { Book } from "~/data/types";
 
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -16,19 +18,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   try {
-    const res = await fetch("http://localhost/api/saved-books", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to fetch saved books");
-    }
-
-    const savedBooksData = await res.json();
+    const savedBooksData = await getSavedBooks(token);
 
     const booksDetails = await Promise.all(
       savedBooksData.data.map(async (savedBook: any) => {
@@ -61,7 +51,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function SavedBooksPage() {
-  const { savedBooks } = useLoaderData();
+  const { savedBooks } = useLoaderData<{ savedBooks: Book[] }>();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");

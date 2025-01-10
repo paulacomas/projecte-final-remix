@@ -1,14 +1,6 @@
 import React from "react";
 import { Form, Link } from "@remix-run/react";
-
-interface Reply {
-  id: string;
-  user: {
-    id: string;
-    name: string;
-  };
-  response: string;
-}
+import { Reply } from "~/data/types";
 
 interface RepliesProps {
   replies: Reply[];

@@ -1,12 +1,11 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import "../util/podium.css";
 import Navigation from "~/components/Layout";
+import { fetchBooks } from "~/data/data";
 
 export async function loader() {
   try {
-    const response = await fetch("http://localhost/api/books", {
-      method: "GET",
-    });
+    const response = await fetchBooks();
 
     if (!response.ok) {
       throw new Error("Failed to fetch books");

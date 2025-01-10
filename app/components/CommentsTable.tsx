@@ -1,17 +1,5 @@
 import { Form, Link } from "@remix-run/react";
-
-interface Comment {
-  id: number;
-  user: {
-    name: string;
-    id: number;
-  };
-  content: string;
-  book: {
-    title: string;
-    id: number;
-  };
-}
+import { Comment } from "~/data/types";
 
 interface CommentsTableProps {
   comments: Comment[];

@@ -32,15 +32,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     const reviews = await fetchReviews(token);
 
-    const filteredReviews = reviews.data.filter((review: { book: { title: string }; user: { name: string }; comment: string }) => {
-      const matchesTitle =
-        !title || review.book.title.toLowerCase().includes(title);
-      const matchesUser =
-        !userName || review.user.name.toLowerCase().includes(userName);
-      const matchesContent =
-        !content || review.comment.toLowerCase().includes(content);
-      return matchesTitle && matchesUser && matchesContent;
-    });
+    const filteredReviews = reviews.data.filter(
+      (review: {
+        book: { title: string };
+        user: { name: string };
+        comment: string;
+      }) => {
+        const matchesTitle =
+          !title || review.book.title.toLowerCase().includes(title);
+        const matchesUser =
+          !userName || review.user.name.toLowerCase().includes(userName);
+        const matchesContent =
+          !content ||
+          (review.comment && review.comment.toLowerCase().includes(content));
+        return matchesTitle && matchesUser && matchesContent;
+      }
+    );
     return json({ reviews: filteredReviews });
   } catch (error) {
     throw new Error("Error fetching reviews");
@@ -92,7 +99,6 @@ export default function AdminReviews() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
   };
 
   return (

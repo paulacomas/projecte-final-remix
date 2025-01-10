@@ -2,7 +2,7 @@ import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import CommentEditForm from "~/components/CommentForm";
 import Modal from "~/components/Modal";
-import { fetchComments, fetchCurrentUser } from "~/data/data";
+import { fetchComments, fetchCurrentUser, updateComment } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { validateCommentContent } from "~/util/validations";
 
@@ -48,14 +48,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     return error;
   }
 
-  const response = await fetch(`http://localhost/api/comments/${commentId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ content }),
-  });
+  const response = await updateComment(commentId, content, token);
 
   if (!response.ok) {
     const errorUrl = `/books/details/${bookId}?error=Error%20editing%20the%20comment`;

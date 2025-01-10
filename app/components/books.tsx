@@ -3,21 +3,7 @@ import { Form, Link, useNavigate } from "@remix-run/react";
 import { getSavedBooks, saveBook, unsaveBook } from "~/data/data";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import StarRating from "./StarRating";
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  gender: string;
-  image_book: string;
-  user_id: string;
-  opinion?: string;
-  review?: number;
-  user?: {
-    id: string;
-    name: string;
-  };
-}
+import { Book } from "~/data/types";
 
 interface BooksListProps {
   books: Book[];
@@ -128,7 +114,7 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
                 >
                   View Details
                 </Link>
-                {currentUserId === book.user_id && (
+                {currentUserId == book.user_id && (
                   <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                     <Link
                       to={`/books/details/${book.id}/edit`}

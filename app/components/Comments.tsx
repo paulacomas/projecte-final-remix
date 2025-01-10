@@ -1,25 +1,7 @@
 import React, { useState } from "react";
 import { Form, Link } from "@remix-run/react";
 import Replies from "./Replies";
-
-interface Reply {
-  id: string;
-  user: {
-    id: string;
-    name: string;
-  };
-  response: string;
-}
-
-interface Comment {
-  id: string;
-  content: string;
-  user: {
-    id: string;
-    name: string;
-  };
-  responses: Reply[];
-}
+import { Comment } from "~/data/types";
 
 interface CommentsProps {
   comments: Comment[];

@@ -62,7 +62,9 @@ export default function Login() {
           {error && <p className="text-red-500">{error}</p>}
           <Form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium">Email:</label>
+              <label htmlFor="email" className="block text-sm font-medium">
+                Email:
+              </label>
               <input
                 id="email"
                 type="email"
@@ -73,7 +75,9 @@ export default function Login() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium">Password:</label>
+              <label htmlFor="password" className="block text-sm font-medium">
+                Password:
+              </label>
               <input
                 id="password"
                 type="password"

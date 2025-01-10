@@ -2,14 +2,10 @@ import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import ReviewForm from "~/components/ReviewForm";
 import Modal from "~/components/Modal";
-import { fetchCurrentUser, fetchReviews } from "~/data/data";
+import { fetchCurrentUser, fetchReviews, updateReview } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { validateReviewInput } from "~/util/validations";
-
-interface Review {
-  id: number;
-  user_id: number;
-}
+import { Review, ReviewEdit } from "~/data/types";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const reviewId = params.idReview;
@@ -20,7 +16,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
   const reviews = await fetchReviews(token);
 
-  const review = reviews.data.find((r: Review) => r.id === Number(reviewId));
+  const review = reviews.data.find((r: ReviewEdit) => r.id === Number(reviewId));
   const user = await fetchCurrentUser(token);
   console.log(user);
 
@@ -53,15 +49,14 @@ export const action: ActionFunction = async ({ request, params }) => {
     return error;
   }
 
-  const response = await fetch(`http://localhost/api/reviews/${reviewId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const response = await updateReview(
+    reviewId,
+    {
+      rating: score,
+      content: comment,
     },
-    body: JSON.stringify({ score, comment }),
-  });
-  console.log(response);
+    token
+  );
 
   if (!response.ok) {
     const errorUrl = `/books/details/${bookId}?error=Error%20editing%20the%20review`;
@@ -73,11 +68,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 };
 
 export default function EditReview() {
-  const review = useLoaderData<{
-    id: number;
-    comment: string;
-    score: number;
-  }>();
+  const review = useLoaderData<Review>();
   const navigate = useNavigate();
 
   function closeHandler() {

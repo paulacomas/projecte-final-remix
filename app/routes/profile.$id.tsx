@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  useParams,
   Link,
-  useNavigate,
   json,
   useLoaderData,
   Outlet,
@@ -15,6 +13,7 @@ import { LoaderFunction } from "@remix-run/node";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import Notification from "~/components/Notification";
 import BooksList from "~/components/books";
+import { User } from "~/data/types";
 
 export const loader: LoaderFunction = async ({ params, request }) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -37,7 +36,10 @@ export const loader: LoaderFunction = async ({ params, request }) => {
 };
 
 export default function ProfilePage() {
-  const { userData, currentUser } = useLoaderData();
+  const { userData, currentUser } = useLoaderData<{
+    userData: User;
+    currentUser: User;
+  }>();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
@@ -120,7 +122,10 @@ export default function ProfilePage() {
               <p className="text-4xl font-extrabold p-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
                 Books published
               </p>
-              <BooksList books={userData.books} currentUserId={userData.id} />
+              <BooksList
+                books={userData.books}
+                currentUserId={currentUser.id}
+              />
             </div>
           )}
         </div>

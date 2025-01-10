@@ -1,16 +1,8 @@
 import React from "react";
 import StarRating from "./StarRating";
 import { Form, Link } from "@remix-run/react";
+import { Review } from "~/data/types";
 
-interface Review {
-  id: string;
-  user?: {
-    id: string;
-    name?: string;
-  };
-  score: number;
-  comment: string;
-}
 
 interface ReviewsProps {
   reviews: Review[];

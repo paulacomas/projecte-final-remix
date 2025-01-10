@@ -1,29 +1,7 @@
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import { useState } from "react";
-import {
-  validateAge,
-  validateEmail,
-  validateName,
-  validateSchoolYear,
-  validateSurname,
-} from "~/util/validations";
-
-interface User {
-  id: string;
-  name: string;
-  surname: string;
-  email: string;
-  age?: number;
-  school_year?: string;
-  profile_image?: string;
-}
-
+import { User, ValidationErrors } from "~/data/types";
 interface ProfileEditFormProps {
   user: User;
-}
-
-interface ValidationErrors {
-  [key: string]: string; // Clau string i valor string
 }
 
 const courses = [
@@ -117,28 +95,6 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
           </select>
         </div>
 
-        <div>
-          <label htmlFor="profile_image" className="block">
-            Profile Image
-          </label>
-          <input
-            type="file"
-            id="profile_image"
-            name="profile_image"
-            className="border px-4 py-2 rounded-md w-full"
-          />
-
-          {user.profile_image && (
-            <div className="mt-2">
-              <img
-                src={user.profile_image}
-                alt="Current profile"
-                className="h-24 w-24 rounded-full"
-              />
-            </div>
-          )}
-        </div>
-
         {validationErrors && (
           <ul className="mb-4 list-inside list-disc text-red-500">
             {Object.values(validationErrors).map((error: string) => (
@@ -150,7 +106,7 @@ export default function ProfileEditForm({ user }: ProfileEditFormProps) {
         <div className="flex gap-4">
           <button
             type="submit"
-            className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="py-2 px-4 bg-blue-700 text-white rounded hover:bg-blue-800"
           >
             {isSubmitting ? "Saving..." : "Save"}
           </button>

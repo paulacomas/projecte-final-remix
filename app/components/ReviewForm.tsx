@@ -2,21 +2,14 @@
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
 import { useState } from "react";
 import { FaStar } from "react-icons/fa";
-import {
-  validateReviewContent,
-  validateReviewRating,
-} from "~/util/validations";
+import { ValidationErrors } from "~/data/types";
 
 interface ReviewFormProps {
-  review: {
-    id: number;
+  review?: {
+    id: string;
     comment: string;
     score: number;
   };
-}
-
-interface ValidationErrors {
-  [key: string]: string; // Clau string i valor string
 }
 
 export default function ReviewForm({ review }: ReviewFormProps) {
@@ -84,7 +77,7 @@ export default function ReviewForm({ review }: ReviewFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
+          className="py-2 px-4 bg-blue-700 text-white font-semibold rounded-md hover:bg-blue-800"
         >
           {isSubmitting ? "Saving..." : "Save"}
         </button>

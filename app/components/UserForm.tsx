@@ -1,13 +1,5 @@
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import { useState } from "react";
-import {
-  validateAge,
-  validateEmail,
-  validateName,
-  validateRol,
-  validateSchoolYear,
-  validateSurname,
-} from "~/util/validations";
+import { ValidationErrors } from "~/data/types";
 
 const courses = [
   "1ESO",
@@ -31,10 +23,6 @@ interface UserFormProps {
     rol: string;
     image_profile: string | null;
   };
-}
-
-interface ValidationErrors {
-  [key: string]: string; // Clau string i valor string
 }
 
 export default function UserForm({ user }: UserFormProps) {
@@ -143,7 +131,7 @@ export default function UserForm({ user }: UserFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
+          className="py-2 px-4 bg-blue-700 text-white font-semibold rounded-md hover:bg-blue-800"
         >
           {isSubmitting ? "Saving..." : "Save"}
         </button>

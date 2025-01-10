@@ -1,8 +1,5 @@
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import { useState } from "react";
-interface ValidationErrors {
-  [key: string]: string; // Clau string i valor string
-}
+import { ValidationErrors } from "~/data/types";
 
 interface CommentFormProps {
   comment?: {
@@ -46,7 +43,7 @@ export default function CommentForm({ comment }: CommentFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="py-2 px-4 bg-blue-700 text-white rounded hover:bg-blue-800"
         >
           {isSubmitting ? "Saving..." : "Save"}
         </button>

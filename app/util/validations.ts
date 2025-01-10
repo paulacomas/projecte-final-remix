@@ -1,5 +1,6 @@
 type ValidationErrors = Record<string, string>;
 
+//validate comments
 export const validateCommentContent = (content: string): void => {
   const validationErrors: ValidationErrors = {};
   if (content.trim() === "") {
@@ -16,12 +17,13 @@ export const validateCommentContent = (content: string): void => {
   }
 };
 
+//validate reviews
 export const validateReviewContent = (content: string) => {
   return content.trim().length > 0 && content.trim().length <= 255;
 };
 
 export const validateReviewRating = (score: number) => {
-  return score > 1 && score < 5;
+  return score >= 1 && score <= 5;
 };
 
 export function validateReviewInput(input): void {
@@ -41,6 +43,8 @@ export function validateReviewInput(input): void {
     throw validationErrors;
   }
 }
+
+//validate books
 
 export function validateTitle(title: string) {
   return title.trim().length > 0 && title.trim().length <= 255;
@@ -105,6 +109,8 @@ export function validateBook(input): void {
     throw validationErrors;
   }
 }
+
+//validate user
 
 export function validateUserAdmin(input): void {
   const validationErrors: ValidationErrors = {};

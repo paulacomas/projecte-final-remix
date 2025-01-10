@@ -12,6 +12,7 @@ import BooksTable from "~/components/BooksTable";
 import Navigation from "~/components/Layout";
 import Notification from "~/components/Notification";
 import { fetchBooks, fetchCurrentUser } from "~/data/data";
+import { Book } from "~/data/types";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -61,23 +62,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function AdminBooks() {
-  interface User {
-    id: number;
-    name: string;
-  }
-
-  interface Book {
-    id: number;
-    title: string;
-    description: string;
-    opinion: string;
-    gender: string;
-    review: string;
-    image_book: string;
-    author: string;
-    user: User;
-  }
-
   const books = useLoaderData<Book[]>();
   const [searchParams] = useSearchParams();
   const [title, setTitle] = useState("");
@@ -88,7 +72,16 @@ export default function AdminBooks() {
   const successMessage = searchParams.get("success");
   const errorMessage = searchParams.get("error");
 
-  const categories = ["Fiction", "Non-Fiction", "Science", "Art"];
+  const categories = [
+    "Fiction",
+    "Non-Fiction",
+    "Science",
+    "Fantasy",
+    "Romance",
+    "Terror",
+    "Action",
+    "Other",
+  ];
 
   const updateUrlWithFilters = (
     newTitle: string,

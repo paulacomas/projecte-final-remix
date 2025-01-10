@@ -103,7 +103,6 @@ export default function BookDetailPage() {
   const errorMessage = searchParams.get("error");
 
   useEffect(() => {
-
     setSavedBooks(new Set(savedBookIds));
   }, [savedBookIds]);
 
@@ -185,7 +184,7 @@ export default function BookDetailPage() {
                 Published on: {new Date(book.created_at).toLocaleDateString()}{" "}
                 by{" "}
                 <Link
-                  to={`/profile/${book.user.id}`} 
+                  to={`/profile/${book.user.id}`}
                   className="font-semibold text-blue-700 hover:underline"
                 >
                   {book.user.name}

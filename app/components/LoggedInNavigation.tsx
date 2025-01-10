@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "@remix-run/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { fetchCurrentUser } from "~/data/data";
+import { fetchCurrentUser, logout } from "~/data/data";
+import { FaBars, FaSearch, FaTimes } from "react-icons/fa";
 
 export default function LoggedInNavigation() {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -31,30 +30,11 @@ export default function LoggedInNavigation() {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token found");
-
-      const res = await fetch("http://localhost/api/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to log out");
-      }
-
-      localStorage.removeItem("token");
-      document.cookie =
-        "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; samesite=lax;";
-
+    const success = await logout();
+    if (success) {
       navigate("/login?success=Logged%20out%20successfully");
-    } catch (error) {
-      console.error("Error logging out:", error);
+    } else {
+      console.error("Logout failed");
     }
   };
 
@@ -87,7 +67,7 @@ export default function LoggedInNavigation() {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle Menu"
         >
-          {menuOpen ? "✖" : "☰"}
+          {menuOpen ? <FaTimes /> : <FaBars />}
         </button>
 
         <nav className="hidden md:flex gap-8 items-center">
@@ -114,7 +94,7 @@ export default function LoggedInNavigation() {
                   onClick={() => setSearchOpen(false)} // Cierra la barra al hacer clic
                   className="text-gray-500 hover:text-red-500"
                 >
-                  <FontAwesomeIcon icon={faTimes} size="lg" />
+                  <FaTimes />
                 </button>
               </div>
             ) : (
@@ -122,7 +102,7 @@ export default function LoggedInNavigation() {
                 onClick={() => setSearchOpen(true)}
                 className="flex items-center gap-2 text-gray-500 hover:text-blue-500"
               >
-                <FontAwesomeIcon icon={faSearch} size="lg" />
+                <FaSearch size={24} />
                 <span>Search user</span>
               </button>
             )}
@@ -185,7 +165,7 @@ export default function LoggedInNavigation() {
               onClick={() => setSearchOpen(false)}
               className="text-gray-500 hover:text-red-500"
             >
-              <FontAwesomeIcon icon={faTimes} size="lg" />
+              <FaTimes />
             </button>
           </div>
           <Link

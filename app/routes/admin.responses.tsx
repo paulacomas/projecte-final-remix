@@ -12,6 +12,7 @@ import Notification from "~/components/Notification";
 import RepliesTable from "~/components/RepliesTable";
 import ResponsesFilters from "~/components/ResponsesFilters";
 import { fetchCurrentUser, fetchReplies } from "~/data/data";
+import { Reply } from "~/data/types";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -31,31 +32,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const response = url.searchParams.get("response")?.toLowerCase() || "";
   try {
     const replies = await fetchReplies(token);
-    const filteredReplies = replies.data.filter((reply: { comment: { content: string }; user: { name: string }; response: string }) => {
-      const matchesTitle =
-        !comment || reply.comment.content.toLowerCase().includes(comment);
-      const matchesUser =
-        !userName || reply.user.name.toLowerCase().includes(userName);
-      const matchesContent =
-        !response || reply.response.toLowerCase().includes(response);
-      return matchesTitle && matchesUser && matchesContent;
-    });
+    const filteredReplies = replies.data.filter(
+      (reply: {
+        comment: { content: string };
+        user: { name: string };
+        response: string;
+      }) => {
+        const matchesTitle =
+          !comment || reply.comment.content.toLowerCase().includes(comment);
+        const matchesUser =
+          !userName || reply.user.name.toLowerCase().includes(userName);
+        const matchesContent =
+          !response || reply.response.toLowerCase().includes(response);
+        return matchesTitle && matchesUser && matchesContent;
+      }
+    );
     return json({ replies: filteredReplies });
   } catch (error) {
     throw new Error("Error fetching the response");
   }
 }
 
-type LoaderData = {
-  replies: Array<{
-    comment: { content: string };
-    user: { name: string };
-    response: string;
-  }>;
-};
-
 export default function AdminReplies() {
-  const { replies } = useLoaderData<LoaderData>();
+  const { replies } = useLoaderData<{ replies: Reply[] }>();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
@@ -99,7 +98,6 @@ export default function AdminReplies() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
   };
 
   return (

@@ -2,36 +2,25 @@ import React, { useState, useEffect } from "react";
 import DefaultNavigation from "./DefaultNavigation";
 import LoggedInNavigation from "./LoggedInNavigation";
 import AdminNavigation from "./AdminNavigator";
+import { fetchUserRole } from "~/data/data";
 
 export default function Navigation() {
   const [userRole, setUserRole] = useState("loading");
 
   useEffect(() => {
-    const fetchUserRole = async () => {
-      try {
-        const response = await fetch("http://localhost/api/user", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+    const token = localStorage.getItem("token");
 
-        if (response.ok) {
-          const data = await response.json();
-          setUserRole(data.rol || "user");
-        } else {
-          setUserRole("guest");
-        }
-      } catch (error) {
-        console.error("Error fetching user role:", error);
-        setUserRole("guest");
-      }
-    };
+    if (token) {
+      const getUserRole = async () => {
+        const role = await fetchUserRole(token);
+        setUserRole(role);
+      };
 
-    fetchUserRole();
+      getUserRole();
+    } else {
+      setUserRole("guest");
+    }
   }, []);
-
   if (userRole === "loading") {
     return <div>Loading...</div>;
   }

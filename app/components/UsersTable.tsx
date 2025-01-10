@@ -1,16 +1,6 @@
 // components/UsersTable.tsx
 import { Form, Link } from "@remix-run/react";
-
-interface User {
-  id: number;
-  name: string;
-  surname: string;
-  email: string;
-  age: number;
-  school_year: string;
-  rol: string;
-  image_profile: string | null;
-}
+import { User } from "~/data/types";
 
 interface UsersTableProps {
   users: User[];

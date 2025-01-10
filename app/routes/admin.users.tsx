@@ -9,11 +9,12 @@ import {
 } from "@remix-run/react";
 import UsersTable from "~/components/UsersTable";
 import Navigation from "~/components/Layout";
-import { fetchCurrentUser, fetchUsers } from "~/data/data"; 
+import { fetchCurrentUser, fetchUsers } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { useState } from "react";
 import Notification from "~/components/Notification";
 import UserFilters from "~/components/UsersFilter";
+import { User } from "~/data/types";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get("Cookie");
@@ -32,12 +33,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const course = url.searchParams.get("course") || "";
   try {
     const users = await fetchUsers(token);
-    const filteredUsers = users.data.users.filter((user: { name: string; email: string; school_year: string }) => {
-      const matchesName = !name || user.name.toLowerCase().includes(name);
-      const matchesEmail = !email || user.email.toLowerCase().includes(email);
-      const matchesCourse = !course || user.school_year === course;
-      return matchesName && matchesEmail && matchesCourse;
-    });
+    const filteredUsers = users.data.users.filter(
+      (user: { name: string; email: string; school_year: string }) => {
+        const matchesName = !name || user.name.toLowerCase().includes(name);
+        const matchesEmail = !email || user.email.toLowerCase().includes(email);
+        const matchesCourse = !course || user.school_year === course;
+        return matchesName && matchesEmail && matchesCourse;
+      }
+    );
 
     return json({ users: filteredUsers });
   } catch (error) {
@@ -46,7 +49,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function AdminUsers() {
-  const { users } = useLoaderData();
+  const { users } = useLoaderData<{ users: User[] }>();
   const [searchParams] = useSearchParams();
 
   const successMessage = searchParams.get("success");
@@ -85,7 +88,7 @@ export default function AdminUsers() {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setName(newName);
-    updateUrlWithFilters(newName, email, course)
+    updateUrlWithFilters(newName, email, course);
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +105,6 @@ export default function AdminUsers() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
   };
 
   return (

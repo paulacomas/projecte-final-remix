@@ -2,7 +2,7 @@ import { LoaderFunction, ActionFunction, redirect } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import Modal from "~/components/Modal";
 import ResponseForm from "~/components/ResponseEditForm";
-import { fetchCurrentUser, fetchReplies } from "~/data/data";
+import { fetchCurrentUser, fetchReplies, updateReplay } from "~/data/data";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
 import { validateCommentContent } from "~/util/validations";
 
@@ -44,17 +44,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     return error;
   }
 
-  const responseFetch = await fetch(
-    `http://localhost/api/responses/${responseId}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ response }),
-    }
-  );
+  const responseFetch = await updateReplay(responseId, response, token);
 
   if (!responseFetch.ok) {
     const errorUrl = `/admin/responses?error=Error%20updating%20the%20response`;
