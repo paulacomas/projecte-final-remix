@@ -21,7 +21,7 @@ export default function DefaultNavigation() {
             </Link>
             <Link
               to="/login"
-              className="text-blue-500 font-medium hover:underline transition"
+              className="text-blue-700 font-medium hover:underline transition"
             >
               Login
             </Link>

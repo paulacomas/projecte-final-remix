@@ -79,7 +79,7 @@ export default function RegisterPage() {
       localStorage.setItem("token", data.token);
       navigate("/");
     } catch (error) {
-      setError("Error registering user");
+      throw new Error("Registration failed");
     }
   };
 
@@ -93,10 +93,7 @@ export default function RegisterPage() {
 
           <Form onSubmit={handleSubmit} method="post">
             <div className="mb-4">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="name" className="block text-gray-700">
                 Name
               </label>
               <input
@@ -106,95 +103,85 @@ export default function RegisterPage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
             <div className="mb-4">
-              <label
-                htmlFor="surname"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="surname" className="block text-gray-700">
                 Surname
               </label>
               <input
                 type="text"
                 name="surname"
+                id="surname"
                 value={formData.surname}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
             <div className="mb-4">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="email" className="block text-gray-700">
                 Email
               </label>
               <input
                 type="email"
                 name="email"
+                id="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
             <div className="mb-4">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="password" className="block text-gray-700">
                 Password
               </label>
               <input
                 type="password"
                 name="password"
+                id="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
             <div className="mb-4">
               <label
                 htmlFor="password_confirmation"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-gray-700"
               >
                 Confirm Password
               </label>
               <input
                 type="password"
                 name="password_confirmation"
+                id="password_confirmation"
                 value={formData.password_confirmation}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
             <div className="mb-4">
-              <label
-                htmlFor="age"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="age" className="block text-gray-700">
                 Age
               </label>
               <input
                 type="number"
                 name="age"
+                id="age"
                 value={formData.age}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
             <div className="mb-4">
-              <label
-                htmlFor="school_year"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="school_year" className="block text-gray-700">
                 School Year
               </label>
               <select
@@ -202,7 +189,7 @@ export default function RegisterPage() {
                 name="school_year"
                 value={formData.school_year}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
                 required
               >
                 {courses.map((course) => (
@@ -215,10 +202,7 @@ export default function RegisterPage() {
 
             {/* Profile Image Field */}
             <div className="mb-4">
-              <label
-                htmlFor="image_profile"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="image_profile" className="block text-gray-700">
                 Profile Image
               </label>
               <input
@@ -226,7 +210,7 @@ export default function RegisterPage() {
                 id="image_profile"
                 name="image_profile"
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
 
@@ -241,7 +225,7 @@ export default function RegisterPage() {
             <div className="mb-4">
               <button
                 type="submit"
-                className="w-full py-2 px-4 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="py-2 px-4 bg-blue-700 text-white rounded hover:bg-blue-800"
               >
                 Register
               </button>

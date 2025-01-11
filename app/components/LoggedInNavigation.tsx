@@ -60,6 +60,12 @@ export default function LoggedInNavigation() {
               className="w-20 h-20"
             />
           </Link>
+          <Link
+            to="/"
+            className="text-gray-700 font-medium hover:text-blue-500 transition"
+          >
+            List of books
+          </Link>
         </div>
 
         <button

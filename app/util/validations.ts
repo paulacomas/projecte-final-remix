@@ -54,15 +54,12 @@ export function validateDescription(description: string) {
   return description.trim().length > 0 && description.trim().length <= 255;
 }
 
-export function validateOpinion(opinion: string | undefined) {
-  return !opinion || opinion.trim().length <= 255;
+export function validateOpinion(opinion: string) {
+  return opinion.trim().length <= 255;
 }
 
-export function validateReview(review: string | undefined) {
-  return (
-    !review ||
-    (!isNaN(Number(review)) && Number(review) >= 1 && Number(review) <= 5)
-  );
+export function validateReview(review: string) {
+  return !isNaN(Number(review)) && Number(review) >= 1 && Number(review) <= 5;
 }
 
 export function validateGender(gender: string) {
@@ -73,6 +70,47 @@ export function validateAuthor(author: string) {
   return author.trim().length > 0 && author.trim().length <= 255;
 }
 export function validateBook(input): void {
+  const validationErrors: ValidationErrors = {};
+
+  // Validacions individuals
+  if (!validateTitle(input.title)) {
+    validationErrors.title =
+      "The title is required and must be a maximum of 255 characters.";
+  }
+
+  if (!validateDescription(input.description)) {
+    validationErrors.description =
+      "The description is required and must be a maximum of 1000 characters.";
+  }
+
+  if (!validateOpinion(input.opinion)) {
+    validationErrors.opinion = "The opinion cannot exceed 500 characters.";
+  }
+
+  if (!validateReview(input.review)) {
+    validationErrors.review = "The review must be a number between 1 and 5.";
+  }
+
+  if (!validateGender(input.gender)) {
+    validationErrors.gender =
+      "The gender is required and must be a maximum of 255 characters.";
+  }
+
+  if (!validateAuthor(input.author)) {
+    validationErrors.author =
+      "The author is required and must be a maximum of 255 characters.";
+  }
+
+  if (!validateImage(input.image_book)) {
+    validationErrors.image_book = "Image required.";
+  }
+
+  // Llança l'error si hi ha alguna validació fallida
+  if (Object.keys(validationErrors).length > 0) {
+    throw validationErrors;
+  }
+}
+export function validateBookEdit(input): void {
   const validationErrors: ValidationErrors = {};
 
   // Validacions individuals
@@ -212,10 +250,6 @@ export function validateUserRegister(input): void {
       "The school year is required and must be a maximum of 255 characters.";
   }
 
-  if (!validateProfileImage(input.image_profile)) {
-    validationErrors.image_profile = "Profile image must be an image file.";
-  }
-
   if (!validatePassword(input.password)) {
     validationErrors.password =
       "Password should be at least 6 characters long.";
@@ -225,6 +259,10 @@ export function validateUserRegister(input): void {
     !validatePasswordConfirmation(input.password, input.password_confirmation)
   ) {
     validationErrors.password_confirmation = "Passwords do not match.";
+  }
+
+  if (!validateImage(input.image_profile)) {
+    validationErrors.image_profile = "Image profile required.";
   }
 
   // Llança l'error si hi ha alguna validació fallida
@@ -277,6 +315,13 @@ export const validatePasswordConfirmation = (
   return password === passwordConfirmation;
 };
 
-export const validateProfileImage = (image: File | null): boolean => {
-  return !image || image.type.startsWith("image/");
+export const validateImage = (image: File): boolean => {
+  if (!image) return false;
+
+  const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
+  if (!validImageTypes.includes(image.type)) {
+    return false;
+  }
+
+  return true;
 };

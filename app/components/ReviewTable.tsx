@@ -33,7 +33,7 @@ const ReviewsTable = ({ reviews }: ReviewsTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/profile/${review.user.name}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {review.user.name}
                   </Link>
@@ -41,7 +41,7 @@ const ReviewsTable = ({ reviews }: ReviewsTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/books/details/${review.book.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {review.book.title}
                   </Link>
@@ -54,7 +54,7 @@ const ReviewsTable = ({ reviews }: ReviewsTableProps) => {
                   <div className="flex gap-2 items-center">
                     <Link
                       to={`/admin/reviews/edit/${review.id}`}
-                      className="text-blue-500 hover:underline"
+                      className="text-blue-700 hover:underline"
                     >
                       Edit
                     </Link>
@@ -65,7 +65,7 @@ const ReviewsTable = ({ reviews }: ReviewsTableProps) => {
                     >
                       <button
                         type="submit"
-                        className="text-red-500 hover:underline"
+                        className="text-red-700 hover:underline"
                         onClick={(e) => {
                           if (
                             !window.confirm(

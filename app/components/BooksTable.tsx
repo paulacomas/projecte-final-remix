@@ -35,7 +35,7 @@ const BooksTable = ({ books }: BooksTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/profile/${book.user.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {book.user.name}
                   </Link>
@@ -43,7 +43,7 @@ const BooksTable = ({ books }: BooksTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/books/details/${book.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {book.title}
                   </Link>
@@ -68,7 +68,7 @@ const BooksTable = ({ books }: BooksTableProps) => {
                   <div className="flex gap-2 items-center">
                     <Link
                       to={`/admin/books/edit/${book.id}`}
-                      className="text-blue-500 hover:underline"
+                      className="text-blue-700 hover:underline"
                     >
                       Edit
                     </Link>
@@ -79,7 +79,7 @@ const BooksTable = ({ books }: BooksTableProps) => {
                     >
                       <button
                         type="submit"
-                        className="text-red-500 hover:underline"
+                        className="text-red-700 hover:underline"
                         onClick={(e) => {
                           if (
                             !window.confirm(

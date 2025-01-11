@@ -74,7 +74,10 @@ export default function EditProfilePage() {
   }
 
   return (
-    <Modal onClose={closeHandler}>
+    <Modal
+      onClose={closeHandler}
+      titleId="Edit profile"
+    >
       <ProfileEditForm user={userData} />
     </Modal>
   );

@@ -27,6 +27,12 @@ export default function AdminNavigation() {
               className="w-20 h-20"
             />
           </Link>
+          <Link
+            to="/"
+            className="text-gray-700 font-medium hover:text-blue-500 transition"
+          >
+            List of books
+          </Link>
         </div>
 
         <button
@@ -71,7 +77,7 @@ export default function AdminNavigation() {
           </Link>
           <button
             onClick={handleLogout}
-            className="text-red-500 font-medium hover:underline transition"
+            className="text-red-700 font-medium hover:underline transition"
           >
             Logout
           </button>
@@ -117,7 +123,7 @@ export default function AdminNavigation() {
           </Link>
           <button
             onClick={handleLogout}
-            className="text-red-500 font-medium hover:underline transition"
+            className="text-red-700 font-medium hover:underline transition"
           >
             Logout
           </button>

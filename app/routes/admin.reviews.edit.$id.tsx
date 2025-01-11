@@ -80,7 +80,10 @@ export default function EditReview() {
   }
 
   return (
-    <Modal onClose={closeHandler}>
+    <Modal
+      onClose={closeHandler}
+      titleId="Edit review"
+    >
       <ReviewForm review={review} />
     </Modal>
   );

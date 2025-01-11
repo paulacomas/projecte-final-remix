@@ -43,7 +43,10 @@ export default function AddReview() {
   }
 
   return (
-    <Modal onClose={closeHandler}>
+    <Modal
+      onClose={closeHandler}
+      titleId="Add comment"
+    >
       <CommentForm comment={undefined} />
     </Modal>
   );

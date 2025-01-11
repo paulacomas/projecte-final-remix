@@ -22,7 +22,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const user = await fetchCurrentUser(token);
   console.log(user);
 
-  if (comment.user_id !== user.id) {
+  if (comment.user_id !== user.id && comment.book.user_id !== user.id) {
     throw new Error("You do not have permission to edit this comment");
   }
 
@@ -73,7 +73,7 @@ export default function EditComment() {
 
   return (
     <div>
-      <Modal onClose={closeHandler}>
+      <Modal onClose={closeHandler} titleId="Edit comment">
         <CommentEditForm comment={comment} />
       </Modal>
     </div>

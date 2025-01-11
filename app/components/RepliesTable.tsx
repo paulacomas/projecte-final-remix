@@ -30,7 +30,7 @@ const RepliesTable = ({ replies }: CommentsTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/profile/${reply.user.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {reply.user.name}
                   </Link>
@@ -40,7 +40,7 @@ const RepliesTable = ({ replies }: CommentsTableProps) => {
                   <div className="flex gap-2 items-center">
                     <Link
                       to={`/admin/responses/edit/${reply.id}`}
-                      className="text-blue-500 hover:underline"
+                      className="text-blue-700 hover:underline"
                     >
                       Edit
                     </Link>
@@ -51,7 +51,7 @@ const RepliesTable = ({ replies }: CommentsTableProps) => {
                     >
                       <button
                         type="submit"
-                        className="text-red-500 hover:underline"
+                        className="text-red-700 hover:underline"
                         onClick={(e) => {
                           if (
                             !window.confirm(

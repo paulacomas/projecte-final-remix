@@ -31,7 +31,7 @@ const CommentsTable = ({ comments }: CommentsTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/profile/${comment.user.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {comment.user.name}
                   </Link>
@@ -39,7 +39,7 @@ const CommentsTable = ({ comments }: CommentsTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/books/details/${comment.book.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {comment.book.title}
                   </Link>
@@ -49,7 +49,7 @@ const CommentsTable = ({ comments }: CommentsTableProps) => {
                   <div className="flex gap-2 items-center">
                     <Link
                       to={`/admin/comments/edit/${comment.id}`}
-                      className="text-blue-500 hover:underline"
+                      className="text-blue-700 hover:underline"
                     >
                       Edit
                     </Link>
@@ -60,7 +60,7 @@ const CommentsTable = ({ comments }: CommentsTableProps) => {
                     >
                       <button
                         type="submit"
-                        className="text-red-500 hover:underline"
+                        className="text-red-700 hover:underline"
                         onClick={(e) => {
                           if (
                             !window.confirm(

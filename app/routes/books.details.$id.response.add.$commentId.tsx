@@ -41,7 +41,10 @@ export default function AddReview() {
   }
 
   return (
-    <Modal onClose={closeHandler}>
+    <Modal
+      onClose={closeHandler}
+      titleId="Add reply"
+    >
       <ResponseForm reply={undefined} />
     </Modal>
   );

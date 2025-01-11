@@ -107,26 +107,40 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
                 </p>
               )}
 
-              <div className="mt-4 flex flex-col sm:flex-row md:flex-col lg:flex-row justify-between items-center sm:items-start lg:space-x-4 w-full">
+              <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 justify-between items-center">
                 <Link
                   to={`/books/details/${book.id}`}
-                  className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-900 text-center sm:w-auto w-full"
+                  className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-900 text-center w-full sm:w-auto"
                 >
                   View Details
                 </Link>
+                <button
+                  onClick={() => toggleSaveBook(book.id)}
+                  className={`px-3 py-2 rounded-lg ${
+                    savedBooks.has(book.id)
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 text-gray-700"
+                  } text-center w-full sm:w-auto`}
+                  title={savedBooks.has(book.id) ? "Saved" : "Save"}
+                >
+                  {savedBooks.has(book.id) ? <FaBookmark /> : <FaRegBookmark />}
+                </button>
+
                 {currentUserId == book.user_id && (
-                  <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                  <div className="flex gap-2 w-full sm:w-auto">
                     <Link
                       to={`/books/details/${book.id}/edit`}
-                      className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-900 text-center w-full sm:w-auto"
+                      className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-900 text-center flex-1"
                     >
                       Edit
                     </Link>
+
+                    {/* Botón "Delete" */}
                     <Form method="POST" action={`/books/details/${book.id}`}>
                       <input type="hidden" name="action" value="delete" />
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-900 text-center w-full sm:w-auto"
+                        className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-900 text-center flex-1"
                         onClick={(e) => {
                           if (
                             !window.confirm(
@@ -142,18 +156,6 @@ export default function BooksList({ books, currentUserId }: BooksListProps) {
                     </Form>
                   </div>
                 )}
-
-                <button
-                  onClick={() => toggleSaveBook(book.id)}
-                  className={`px-3 py-2 rounded-lg ${
-                    savedBooks.has(book.id)
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-300 text-gray-700"
-                  } text-center sm:w-auto w-full`}
-                  title={savedBooks.has(book.id) ? "Saved" : "Save"}
-                >
-                  {savedBooks.has(book.id) ? <FaBookmark /> : <FaRegBookmark />}
-                </button>
               </div>
             </div>
           ))}

@@ -16,11 +16,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
   const reviews = await fetchReviews(token);
 
-  const review = reviews.data.find((r: ReviewEdit) => r.id === Number(reviewId));
+  const review = reviews.data.find(
+    (r: ReviewEdit) => r.id === Number(reviewId)
+  );
   const user = await fetchCurrentUser(token);
   console.log(user);
 
-  if (review.user_id !== user.id) {
+  if (review.user_id !== user.id && review.book.user_id !== user.id) {
     throw new Error("You do not have permission to edit this review");
   }
 
@@ -76,7 +78,7 @@ export default function EditReview() {
   }
 
   return (
-    <Modal onClose={closeHandler}>
+    <Modal onClose={closeHandler} titleId="Edit review">
       <ReviewForm review={review} />
     </Modal>
   );

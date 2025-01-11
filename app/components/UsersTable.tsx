@@ -36,7 +36,7 @@ const UsersTable = ({ users }: UsersTableProps) => {
                 <td className="p-3">
                   <Link
                     to={`/profile/${user.id}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-700 hover:underline"
                   >
                     {user.name}
                   </Link>
@@ -61,7 +61,7 @@ const UsersTable = ({ users }: UsersTableProps) => {
                   <div className="flex gap-2 items-center">
                     <Link
                       to={`/admin/users/edit/${user.id}`}
-                      className="text-blue-500 hover:underline"
+                      className="text-blue-700 hover:underline"
                     >
                       Edit
                     </Link>
@@ -72,7 +72,7 @@ const UsersTable = ({ users }: UsersTableProps) => {
                     >
                       <button
                         type="submit"
-                        className="text-red-500 hover:underline"
+                        className="text-red-700 hover:underline"
                         onClick={(e) => {
                           if (
                             !window.confirm(

@@ -9,7 +9,7 @@ import {
 } from "~/data/data";
 import { Book } from "~/data/types";
 import { getAuthTokenFromCookie } from "~/helpers/cookies";
-import { validateBook } from "~/util/validations";
+import { validateBook, validateBookEdit } from "~/util/validations";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { id } = params;
@@ -55,7 +55,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   try {
     // Validem les dades abans de fer la mutació
-    validateBook(updatedBook);
+    validateBookEdit(updatedBook);
   } catch (error) {
     // En aquest cas ens volem assegurar que l'usuari vegi els errors que han provocat aquest error de validació
     return error;
@@ -85,7 +85,10 @@ export default function EditBook() {
   }
 
   return (
-    <Modal onClose={closeHandler}>
+    <Modal
+      onClose={closeHandler}
+      titleId="Edit book"
+    >
       <BookForm book={book} />
     </Modal>
   );

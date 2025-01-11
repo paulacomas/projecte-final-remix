@@ -169,8 +169,9 @@ export default function BookDetailPage() {
 
               {book.opinion && (
                 <div className="mt-4">
-                  <h3 className="text-lg font-semibold">Opinion:</h3>
-                  <p className="text-sm text-gray-700">{book.opinion}</p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Opinion:</strong> {book.opinion}
+                  </p>
                 </div>
               )}
 

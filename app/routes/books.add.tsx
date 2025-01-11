@@ -113,6 +113,7 @@ export default function PublishBookPage() {
             <input
               type="text"
               name="title"
+              id="title"
               value={formData.title}
               onChange={handleChange}
               maxLength={255}
@@ -128,6 +129,7 @@ export default function PublishBookPage() {
             </label>
             <textarea
               name="description"
+              id="description"
               value={formData.description}
               onChange={handleChange}
               maxLength={1000}
@@ -139,10 +141,11 @@ export default function PublishBookPage() {
               htmlFor="opinion"
               className="block text-gray-700 font-medium mb-2"
             >
-              Opinion (optional)
+              Opinion
             </label>
             <textarea
               name="opinion"
+              id="opinion"
               value={formData.opinion}
               onChange={handleChange}
               maxLength={500}
@@ -154,10 +157,11 @@ export default function PublishBookPage() {
               htmlFor="review"
               className="block text-gray-700 font-medium mb-2"
             >
-              Review (optional)
+              Review
             </label>
             <select
               name="review"
+              id="review"
               value={formData.review}
               onChange={handleChange}
               className="w-full h-12 border-gray-300 rounded-lg shadow-sm"
@@ -204,6 +208,7 @@ export default function PublishBookPage() {
             </label>
             <input
               type="text"
+              id="author"
               name="author"
               value={formData.author}
               onChange={handleChange}
@@ -216,11 +221,12 @@ export default function PublishBookPage() {
               htmlFor="image_book"
               className="block text-gray-700 font-medium mb-2"
             >
-              Book Image (optional)
+              Book Image
             </label>
             <input
               type="file"
               name="image_book"
+              id="image_book"
               onChange={handleFileChange}
               accept="image/jpeg,image/png,image/jpg,image/gif,image/svg"
               className="w-full h-12 border-gray-300 rounded-lg shadow-sm"

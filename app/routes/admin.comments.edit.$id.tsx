@@ -70,7 +70,10 @@ export default function EditComment() {
 
   return (
     <div>
-      <Modal onClose={closeHandler}>
+      <Modal
+        onClose={closeHandler}
+        titleId="Edit comment"
+      >
         <CommentEditForm comment={comment} />
       </Modal>
     </div>

@@ -69,7 +69,10 @@ export default function EditResponse() {
 
   return (
     <div>
-      <Modal onClose={closeHandler}>
+      <Modal
+        onClose={closeHandler}
+        titleId="Edit reply"
+      >
         <ResponseForm reply={reply} />
       </Modal>
     </div>

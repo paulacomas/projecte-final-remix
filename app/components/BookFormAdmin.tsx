@@ -123,6 +123,9 @@ export default function BookFormAdmin({ book }: BookFormProps) {
               className={`w-8 h-8 ${
                 index < review ? "text-blue-500" : "text-gray-300"
               }`}
+              aria-label={`Set rating to ${index + 1} star${
+                index === 0 ? "" : "s"
+              }`}
             >
               <FaStar />
             </button>

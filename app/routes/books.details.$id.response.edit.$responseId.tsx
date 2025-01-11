@@ -20,7 +20,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const user = await fetchCurrentUser(token);
   console.log(user);
 
-  if (reply.user_id !== user.id) {
+  if (reply.user_id !== user.id && reply.book.user_id !== user.id) {
     throw new Error("You do not have permission to edit this reply");
   }
 
@@ -71,7 +71,10 @@ export default function EditResponse() {
 
   return (
     <div>
-      <Modal onClose={closeHandler}>
+      <Modal
+        onClose={closeHandler}
+        titleId="Edit reply"
+      >
         <ResponseForm reply={reply} />
       </Modal>
     </div>

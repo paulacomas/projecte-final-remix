@@ -78,7 +78,10 @@ export default function EditUser() {
     navigate("..");
   }
   return (
-    <Modal onClose={closeHandler}>
+    <Modal
+      onClose={closeHandler}
+      titleId="Edit user"
+    >
       <UserForm user={user} />
     </Modal>
   );
