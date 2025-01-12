@@ -55,7 +55,7 @@ export default function LoggedInNavigation() {
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-4">
             <img
-              src="/public/logo.png"
+              src="/logo.png"
               alt="Books Logo"
               className="w-20 h-20"
             />

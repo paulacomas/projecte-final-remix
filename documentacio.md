@@ -115,6 +115,13 @@ Cada controlador extén una classe base Controller que inclou una funció anomen
 
 ---
 
+## **Rutes i middleware**
+
+- Totes les rutes menys les de register,login, get books i get comments estan protegides amb un middlewere que comprova si hi ha un token vàlid proporcionat a la sol·licitud. Si el token no existeix o no és vàlid, retorna un error. Si el token és vàlid, l'usuari esta logejat per tant permet que la sol·licitud continuï.
+- Totes les rutes de l'administrador estan protegides per un middleware que mira si l'usuari que estan intentant accedir es admin o no, si no es admin no el deixa accedir
+
+---
+
 # **Frontend**
 
 ### Components
@@ -205,3 +212,7 @@ Al principi, no sabia com fer funcionar l'action a Remix, ja que no estava famil
 ## **Conclusions Finals**
 
 Aquest projecte ha estat un gran aprenentatge. Tot i els desafiaments inicials amb Remix, he après a estructurar millor les rutes i a treballar amb una arquitectura escalable tant al frontend com al backend. Els coneixements adquirits seran molt útils per a projectes futurs.
+
+# VIDEO
+
+https://youtu.be/zHebe_6FRMU
