@@ -195,13 +195,13 @@ Quan vaig començar a treballar amb Remix, em vaig trobar amb un problema import
 
 ### **Rutes de Remix**
 
-Al començament, al no tenir gaire experiencia amb Remix, vaig trobar dificultats amb les rutes dinàmiques, especialment en estructures més complexes com ara books.details.$id.tsx i subrutes com books.details.$id.comments.add. Aquestes no funcionaven correctament perquè no havia configurat adequadament el component <Outlet /> dins de les rutes pare.
-El problema principal era que les pàgines que depenien de subrutes no carregaven bé el contingut dinàmic. Això es deu al fet que Remix utilitza el component <Outlet /> per renderitzar el contingut de les subrutes dins de la ruta pare. Sense aquest component, les subrutes no es mostraven, i vaig perdre força temps intentant entendre què estava fallant.
+Al començament, al no tenir gaire experiencia amb Remix, vaig trobar dificultats amb les rutes dinàmiques, especialment en estructures més complexes com ara books.details.$id.tsx i subrutes com books.details.$id.comments.add. Aquestes no funcionaven correctament perquè no havia configurat adequadament el component `<Outlet />` dins de les rutes pare.
+El problema principal era que les pàgines que depenien de subrutes no carregaven bé el contingut dinàmic. Això es deu al fet que Remix utilitza el component `<Outlet />` per renderitzar el contingut de les subrutes dins de la ruta pare. Sense aquest component, les subrutes no es mostraven, i vaig perdre força temps intentant entendre què estava fallant.
 
 A mesura que avançava amb el projecte, vaig començar a entendre millor com funcionava la jerarquia de rutes en Remix. Vaig decidir fer primer les funcionalitats de l'usuari perquè requerien una estructura de rutes més variada i complexa. Això em va permetre familiaritzar-me amb:
 
 - **Rutes dinàmiques:** per exemple, com utilitzar $id per capturar paràmetres dinàmics dins de les URL.
-- **Subrutes i layouts:** com fer servir el component <Outlet /> per permetre que les subrutes es renderitzessin dins de les rutes pare.
+- **Subrutes i layouts:** com fer servir el component `<Outlet />` per permetre que les subrutes es renderitzessin dins de les rutes pare.
 
 Un cop vaig dominar les rutes d'usuari, vaig aplicar aquest coneixement a les rutes de l'administrador. Aquest procés va ser molt més ràpid i senzill, ja que ja coneixia les bases i entenia com estructurar correctament les rutes per a funcionalitats com ara editar o eliminar llibres.
 
